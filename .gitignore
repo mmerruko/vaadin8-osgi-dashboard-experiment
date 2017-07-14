@@ -1,0 +1,8 @@
+*/target/
+**.class
+**/VAADIN/themes/*/styles.css
+**/VAADIN/themes/*/addons.scss
+
+**.settings
+**.classpath
+**.project
