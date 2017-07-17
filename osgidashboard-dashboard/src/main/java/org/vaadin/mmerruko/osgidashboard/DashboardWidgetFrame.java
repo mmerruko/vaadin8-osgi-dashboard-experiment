@@ -20,7 +20,7 @@ public class DashboardWidgetFrame extends CssLayout {
         addStyleName("dashboard-widget");
         addStyleName(ValoTheme.LAYOUT_CARD);
         
-        setWidth("100%");
+        setSizeFull();
         
         HorizontalLayout titleBar = new HorizontalLayout();
         titleBar.setWidth("100%");

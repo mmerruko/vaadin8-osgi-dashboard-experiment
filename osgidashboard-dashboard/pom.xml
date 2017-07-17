@@ -13,10 +13,9 @@
 	<packaging>jar</packaging>
 
 	<dependencies>
-		<!-- Versions for these are configured in the parent POM -->
 		<dependency>
 			<groupId>com.vaadin</groupId>
-			<artifactId>vaadin-client</artifactId>
+			<artifactId>vaadin-server</artifactId>
 			<scope>provided</scope>
 		</dependency>
 	</dependencies>
