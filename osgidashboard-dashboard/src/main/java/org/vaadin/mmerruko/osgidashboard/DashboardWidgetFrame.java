@@ -12,47 +12,53 @@ import com.vaadin.ui.MenuBar.MenuItem;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class DashboardWidgetFrame extends CssLayout {
-    
+
     private Label widgetTitle;
     private MenuItem root;
+    private Component content;
 
     public DashboardWidgetFrame(Component content) {
+        this.content = content;
         addStyleName("dashboard-widget");
         addStyleName(ValoTheme.LAYOUT_CARD);
-        
+
         setSizeFull();
-        
+
         HorizontalLayout titleBar = new HorizontalLayout();
         titleBar.setWidth("100%");
         titleBar.setSpacing(false);
-        
+
         widgetTitle = new Label();
         widgetTitle.addStyleName(ValoTheme.LABEL_COLORED);
         widgetTitle.addStyleName(ValoTheme.LABEL_H3);
         widgetTitle.addStyleName(ValoTheme.LABEL_NO_MARGIN);
         widgetTitle.setWidthUndefined();
-        
+
         titleBar.addComponent(widgetTitle);
         titleBar.setExpandRatio(widgetTitle, 1);
         titleBar.setComponentAlignment(widgetTitle, Alignment.MIDDLE_CENTER);
-        
+
         MenuBar toolbar = new MenuBar();
         toolbar.addStyleName(ValoTheme.MENUBAR_SMALL);
         toolbar.addStyleName(ValoTheme.MENUBAR_BORDERLESS);
-        
+
         titleBar.addComponent(toolbar);
         titleBar.setComponentAlignment(toolbar, Alignment.MIDDLE_RIGHT);
-        
+
         root = toolbar.addItem("", VaadinIcons.COG, null);
-        
+
         addComponent(titleBar);
         addComponent(content);
     }
-    
+
+    public Component getContent() {
+        return content;
+    }
+
     public void setWidgetTitle(String title) {
         this.widgetTitle.setValue(title);
     }
-    
+
     public void addMenuAction(String caption, Resource icon, Runnable action) {
         root.addItem(caption, icon, (item) -> action.run());
     }
