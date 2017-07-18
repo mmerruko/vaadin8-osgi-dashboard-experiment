@@ -166,10 +166,10 @@ public class GridDashboard extends GridLayout {
         }
 
         int column1 = area.getColumn1();
-        int newColumn2 = area.getColumn2() + width - 1;
+        int newColumn2 = area.getColumn1() + width - 1;
 
         int row1 = area.getRow1();
-        int newRow2 = area.getRow2() + height - 1;
+        int newRow2 = area.getRow1() + height - 1;
 
         return isTargetAreaEmpty(widgetFrame, column1, row1, newColumn2,
                 newRow2);
