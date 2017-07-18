@@ -68,6 +68,21 @@
 					<version>${karaf.version}</version>
 					<extensions>true</extensions>
 				</plugin>
+				<plugin>
+					<groupId>com.vaadin</groupId>
+					<artifactId>vaadin-maven-plugin</artifactId>
+					<executions>
+						<execution>
+							<goals>
+								<goal>update-widgetset</goal>
+								<goal>compile</goal>
+
+								<goal>update-theme</goal>
+								<goal>compile-theme</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
 			</plugins>
 		</pluginManagement>
 	</build>

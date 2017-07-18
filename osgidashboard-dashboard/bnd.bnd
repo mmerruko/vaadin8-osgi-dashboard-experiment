@@ -1,7 +1,8 @@
 Bundle-Name: ${project.name}
 Bundle-Version: ${project.version}
 Bundle-SymbolicName: ${project.groupId}.${project.artifactId}
-Export-Package: org.vaadin.mmerruko.osgidashboard
+Export-Package: org.vaadin.mmerruko.osgidashboard,\
+    !org.vaadin.mmerruko.osgidashboard.client
 Import-Package: !com.google*,\
     !com.vaadin.client*,\
     *
