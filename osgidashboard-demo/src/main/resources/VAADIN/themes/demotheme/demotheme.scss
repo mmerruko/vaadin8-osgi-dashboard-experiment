@@ -34,5 +34,7 @@
 @mixin demotheme {
   @include valo;
 
-  // Insert your own theme rules here
+  .v-gridlayout-slot-over {
+    background-color:$v-focus-color;
+  }
 }
