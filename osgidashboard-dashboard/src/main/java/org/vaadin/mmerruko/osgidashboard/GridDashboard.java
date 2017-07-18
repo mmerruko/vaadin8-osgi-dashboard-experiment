@@ -5,11 +5,14 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 
+import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.Connector;
 import com.vaadin.shared.ui.gridlayout.GridLayoutState.ChildComponentData;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.GridLayout;
+import com.vaadin.ui.Notification;
+import com.vaadin.ui.dnd.DragSourceExtension;
 
 public class GridDashboard extends GridLayout {
     public interface IWidgetFactory {
@@ -28,7 +31,10 @@ public class GridDashboard extends GridLayout {
     public GridDashboard() {
         super(5, 5);
         addStyleName("dashboard");
+        
         setSpacing(true);
+        setSizeFull();
+        
         fillWithPlaceholders();
         configureDrop();
     }
@@ -55,7 +61,25 @@ public class GridDashboard extends GridLayout {
     private DashboardWidgetFrame wrap(String widgetTitle, Component component) {
         DashboardWidgetFrame widget = new DashboardWidgetFrame(component);
         widget.setWidgetTitle(widgetTitle);
-
+        widget.addMenuAction("Resize", VaadinIcons.RESIZE_V, () -> {
+            SizeDialog dialog = new SizeDialog();
+            
+            dialog.setResizeCallback((width, height) -> {
+                if (!isNewWidgetSizeValid(widget.getContent(), width, height)) {
+                    Notification.show("Ivalid Size!", Notification.Type.ERROR_MESSAGE);
+                    return false;
+                } 
+                
+                setWidgetSize(widget.getContent(), width, height);
+                return true;
+                
+            });
+            
+            Area area = getComponentArea(widget);
+            dialog.show(area.getColumn2() - area.getColumn1() + 1,
+                    area.getRow2() - area.getRow1() + 1);
+            
+        });
         return widget;
     }
 
