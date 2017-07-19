@@ -177,6 +177,7 @@
 		<module>osgidashboard-dashboard</module>
 		<module>osgidashboard-demo</module>
 		<module>osgidashboard-osgi</module>
+		<module>osgidashboard-olmap</module>
 		<module>osgidashboard-karaf</module>
 	</modules>
 </project>
