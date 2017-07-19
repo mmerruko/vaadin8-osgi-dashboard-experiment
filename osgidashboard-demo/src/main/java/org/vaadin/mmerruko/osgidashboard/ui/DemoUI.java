@@ -6,6 +6,7 @@ import org.osgi.service.component.annotations.Component;
 import org.vaadin.mmerruko.osgidashboard.DashboardModel;
 import org.vaadin.mmerruko.osgidashboard.DashboardWidgetset;
 import org.vaadin.mmerruko.osgidashboard.GridDashboard;
+import org.vaadin.mmerruko.osgidashboard.SizeDialog;
 import org.vaadin.teemusa.sidemenu.SideMenu;
 
 import com.vaadin.annotations.Theme;
@@ -70,7 +71,19 @@ public class DemoUI extends UI {
         toolbarWrapper.setMargin(new MarginInfo(false, true));
         
         dashboardMenu.addItem("Resize", VaadinIcons.RESIZE_H, item -> {
+            int rows = dashboard.getRows();
+            int columns = dashboard.getColumns();
             
+            SizeDialog dialog = new SizeDialog();
+            dialog.setResizeCallback((width, height) -> {
+                if (!dashboard.canSetDimensions(width, height)) {
+                    Notification.show("Invalid dashboard dimensions!", Notification.Type.ERROR_MESSAGE);
+                    return false;
+                }
+                dashboard.setDimensions(width, height);
+                return true;
+            });
+            dialog.show(columns,rows);
         });
         
         dashboardMenu.addItem("Save", FontAwesome.FLOPPY_O, item -> {

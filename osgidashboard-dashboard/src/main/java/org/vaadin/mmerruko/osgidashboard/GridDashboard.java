@@ -12,7 +12,6 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.Notification;
-import com.vaadin.ui.dnd.DragSourceExtension;
 
 public class GridDashboard extends GridLayout {
     public interface IWidgetFactory {
@@ -31,10 +30,10 @@ public class GridDashboard extends GridLayout {
     public GridDashboard() {
         super(5, 5);
         addStyleName("dashboard");
-        
+
         setSpacing(true);
         setSizeFull();
-        
+
         fillWithPlaceholders();
         configureDrop();
     }
@@ -43,9 +42,9 @@ public class GridDashboard extends GridLayout {
         GridLayoutDropTargetExtension dropTarget = new GridLayoutDropTargetExtension(
                 this);
         dropTarget.addGridLayoutDropListener(dropEvent -> {
-            dropEvent.getDragData()
-                    .ifPresent(data -> acceptDrop(dropEvent.getColumn(),
-                            dropEvent.getRow(), data));
+            dropEvent.getDragData().ifPresent(data -> {
+                acceptDrop(dropEvent.getColumn(), dropEvent.getRow(), data);
+            });
         });
     }
 
@@ -63,22 +62,23 @@ public class GridDashboard extends GridLayout {
         widget.setWidgetTitle(widgetTitle);
         widget.addMenuAction("Resize", VaadinIcons.RESIZE_V, () -> {
             SizeDialog dialog = new SizeDialog();
-            
+
             dialog.setResizeCallback((width, height) -> {
                 if (!isNewWidgetSizeValid(widget.getContent(), width, height)) {
-                    Notification.show("Ivalid Size!", Notification.Type.ERROR_MESSAGE);
+                    Notification.show("Ivalid Size!",
+                            Notification.Type.ERROR_MESSAGE);
                     return false;
-                } 
-                
+                }
+
                 setWidgetSize(widget.getContent(), width, height);
                 return true;
-                
+
             });
-            
+
             Area area = getComponentArea(widget);
             dialog.show(area.getColumn2() - area.getColumn1() + 1,
                     area.getRow2() - area.getRow1() + 1);
-            
+
         });
         return widget;
     }
@@ -122,7 +122,7 @@ public class GridDashboard extends GridLayout {
      *             components fall outside the new bounds
      */
     public void setDimensions(int columns, int rows) {
-        removePlaceholders(getColumns(), columns, getRows(), rows);
+        removePlaceholders();
         setRows(rows);
         setColumns(columns);
         fillWithPlaceholders();
@@ -180,7 +180,7 @@ public class GridDashboard extends GridLayout {
         if (column2 >= getColumns() || row2 >= getRows()) {
             return false;
         }
-        
+
         for (Entry<Connector, ChildComponentData> data : getState().childData
                 .entrySet()) {
             /*
@@ -225,18 +225,17 @@ public class GridDashboard extends GridLayout {
 
         Area area = getComponentArea(widgetFrame);
         removeComponent(widgetFrame);
-        removePlaceholders(area.getRow1(), area.getRow1() + height - 1,
-                area.getColumn1(), area.getColumn1() + width - 1);
+        removePlaceholders();
 
         addComponent(widgetFrame, area.getColumn1(), area.getRow1(),
                 area.getColumn1() + width - 1, area.getRow1() + height - 1);
+        fillWithPlaceholders();
 
     }
 
-    private void removePlaceholders(int row1, int row2, int column1,
-            int column2) {
-        for (int row = row1; row <= row2; row++) {
-            for (int column = column1; column <= column2; column++) {
+    private void removePlaceholders() {
+        for (int row = 0; row <= getRows(); row++) {
+            for (int column = 0; column <= getColumns(); column++) {
                 Component component = getComponent(column, row);
                 if (component instanceof Placeholder) {
                     removeComponent(component);
