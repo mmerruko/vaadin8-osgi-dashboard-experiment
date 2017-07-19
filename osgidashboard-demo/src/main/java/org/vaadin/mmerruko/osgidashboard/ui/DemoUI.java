@@ -3,7 +3,6 @@ package org.vaadin.mmerruko.osgidashboard.ui;
 import javax.servlet.annotation.WebServlet;
 
 import org.osgi.service.component.annotations.Component;
-import org.vaadin.mmerruko.osgidashboard.DashboardModel;
 import org.vaadin.mmerruko.osgidashboard.DashboardWidgetset;
 import org.vaadin.mmerruko.osgidashboard.GridDashboard;
 import org.vaadin.mmerruko.osgidashboard.SizeDialog;
@@ -36,9 +35,6 @@ public class DemoUI extends UI {
         SideMenu sideMenu = new SideMenu();
         sideMenu.setUserName("User Name");
         sideMenu.setUserIcon(VaadinIcons.USER);
-
-        DashboardModel dashboardModel = new DashboardModel();
-        dashboardModel.setColumns(8);
 
         GridDashboard dashboard = new GridDashboard();
         dashboard.setSizeFull();
