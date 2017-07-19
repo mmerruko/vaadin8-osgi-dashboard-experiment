@@ -1,4 +1,4 @@
-package org.vaadin.mmerruko.osgidashboard;
+package org.vaadin.mmerruko.griddashboard;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -6,6 +6,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import org.vaadin.mmerruko.griddashboard.dnd.GridLayoutDropTargetExtension;
+
 import java.util.Optional;
 
 import com.vaadin.icons.VaadinIcons;

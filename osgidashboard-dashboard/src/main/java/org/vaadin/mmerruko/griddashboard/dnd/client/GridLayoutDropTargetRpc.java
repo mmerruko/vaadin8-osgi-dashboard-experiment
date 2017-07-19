@@ -1,3 +1,4 @@
+package org.vaadin.mmerruko.griddashboard.dnd.client;
 /*
  * Copyright 2000-2016 Vaadin Ltd.
  *
@@ -13,17 +14,16 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.vaadin.mmerruko.osgidashboard;
 
-import java.lang.reflect.Method;
+import java.util.List;
+import java.util.Map;
 
-import com.vaadin.event.ConnectorEventListener;
+import com.vaadin.shared.MouseEventDetails;
+import com.vaadin.shared.communication.ServerRpc;
 
-@FunctionalInterface
-public interface GridLayoutDropListener extends ConnectorEventListener {
+public interface GridLayoutDropTargetRpc extends ServerRpc {
 
-    static final Method DROP_METHOD = GridLayoutDropListener.class
-            .getDeclaredMethods()[0];
-
-    void drop(GridLayoutDropEvent event);
+    public void drop(List<String> types, Map<String, String> data,
+            String dropEffect, int row, int column,
+            MouseEventDetails mouseEventDetails);
 }

@@ -1,7 +1,7 @@
-package org.vaadin.mmerruko.osgidashboard.ui;
+package org.vaadin.mmerruko.osgidashboard.widgetset;
 
-import org.vaadin.mmerruko.osgidashboard.IWidgetContribution;
-import org.vaadin.mmerruko.osgidashboard.GridDashboard.IWidgetFactory;
+import org.vaadin.mmerruko.griddashboard.IWidgetContribution;
+import org.vaadin.mmerruko.griddashboard.GridDashboard.IWidgetFactory;
 
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Label;

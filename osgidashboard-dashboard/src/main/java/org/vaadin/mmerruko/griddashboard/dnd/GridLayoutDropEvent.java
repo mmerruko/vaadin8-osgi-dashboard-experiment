@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.vaadin.mmerruko.osgidashboard;
+package org.vaadin.mmerruko.griddashboard.dnd;
 
 import java.util.Map;
 

@@ -11,10 +11,11 @@ import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.annotations.Component;
-import org.vaadin.mmerruko.osgidashboard.DashboardWidgetset;
-import org.vaadin.mmerruko.osgidashboard.GridDashboard;
-import org.vaadin.mmerruko.osgidashboard.IWidgetContribution;
-import org.vaadin.mmerruko.osgidashboard.SizeDialog;
+import org.vaadin.mmerruko.griddashboard.GridDashboard;
+import org.vaadin.mmerruko.griddashboard.IWidgetContribution;
+import org.vaadin.mmerruko.griddashboard.SizeDialog;
+import org.vaadin.mmerruko.osgidashboard.widgetset.DashboardWidgetset;
+import org.vaadin.mmerruko.osgidashboard.widgetset.DefaultWidgetFactory;
 import org.vaadin.teemusa.sidemenu.SideMenu;
 
 import com.vaadin.annotations.Theme;

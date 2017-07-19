@@ -1,6 +1,6 @@
-package org.vaadin.mmerruko.osgidashboard.ui;
+package org.vaadin.mmerruko.osgidashboard.widgetset;
 
-import org.vaadin.mmerruko.osgidashboard.IWidgetContribution;
+import org.vaadin.mmerruko.griddashboard.IWidgetContribution;
 
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.Resource;

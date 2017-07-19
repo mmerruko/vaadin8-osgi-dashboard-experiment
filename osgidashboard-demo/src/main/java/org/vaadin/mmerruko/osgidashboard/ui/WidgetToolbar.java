@@ -2,7 +2,7 @@ package org.vaadin.mmerruko.osgidashboard.ui;
 
 import java.util.List;
 
-import org.vaadin.mmerruko.osgidashboard.IWidgetContribution;
+import org.vaadin.mmerruko.griddashboard.IWidgetContribution;
 
 import com.vaadin.ui.FormLayout;
 import com.vaadin.ui.Label;

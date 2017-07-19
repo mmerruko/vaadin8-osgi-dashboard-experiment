@@ -1,4 +1,4 @@
-package org.vaadin.mmerruko.osgidashboard;
+package org.vaadin.mmerruko.griddashboard;
 
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Component;
