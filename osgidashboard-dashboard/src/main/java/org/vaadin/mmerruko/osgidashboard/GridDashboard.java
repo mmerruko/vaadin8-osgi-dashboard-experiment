@@ -9,6 +9,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 
 import com.vaadin.icons.VaadinIcons;
+import com.vaadin.server.Resource;
 import com.vaadin.shared.Connector;
 import com.vaadin.shared.ui.gridlayout.GridLayoutState.ChildComponentData;
 import com.vaadin.ui.Component;
@@ -20,6 +21,8 @@ import com.vaadin.ui.dnd.DragSourceExtension;
 public class GridDashboard extends GridLayout {
     public interface IWidgetFactory {
         public Component createWidgetComponent(Object data);
+        public String getWidgetTitle(Object data);
+        public Resource getWidgetIcon(Object data);
     }
 
     private Optional<IWidgetFactory> factory = Optional.empty();
@@ -61,7 +64,7 @@ public class GridDashboard extends GridLayout {
         factory.ifPresent(f -> {
             Component widgetComponent = f.createWidgetComponent(data);
             if (canAddWidget(widgetComponent, column, row)) {
-                addWidget(widgetComponent, column, row);
+                addWidget(widgetComponent, f.getWidgetTitle(data), column, row);
             }
         });
     }
@@ -348,14 +351,15 @@ public class GridDashboard extends GridLayout {
                 row);
     }
 
-    public void addWidget(Component component, int column, int row) {
+    public void addWidget(Component component, String title, int column, int row) {
         if (!canAddWidget(component, column, row)) {
             String message = String.format(
                     "Can't add widget in column %d and row %d! Widget already exists in that area!",
                     column, row);
             throw new IllegalArgumentException(message);
         }
-        DashboardWidgetFrame widget = wrap(component.getCaption(), component);
+        
+        DashboardWidgetFrame widget = wrap(title, component);
         componentToWidget.put(component, widget);
 
         Component placeholder = getComponent(column, row);

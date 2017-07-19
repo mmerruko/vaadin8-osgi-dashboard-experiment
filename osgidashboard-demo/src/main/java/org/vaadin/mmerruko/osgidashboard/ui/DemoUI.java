@@ -1,10 +1,19 @@
 package org.vaadin.mmerruko.osgidashboard.ui;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.servlet.annotation.WebServlet;
 
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.annotations.Component;
 import org.vaadin.mmerruko.osgidashboard.DashboardWidgetset;
 import org.vaadin.mmerruko.osgidashboard.GridDashboard;
+import org.vaadin.mmerruko.osgidashboard.IWidgetContribution;
 import org.vaadin.mmerruko.osgidashboard.SizeDialog;
 import org.vaadin.teemusa.sidemenu.SideMenu;
 
@@ -35,6 +44,9 @@ public class DemoUI extends UI {
         SideMenu sideMenu = new SideMenu();
         sideMenu.setUserName("User Name");
         sideMenu.setUserIcon(VaadinIcons.USER);
+        sideMenu.addMenuItem("Show Toolbar", VaadinIcons.TOOLBOX, () -> {
+            showWidgetToolbarWindow();
+        });
 
         GridDashboard dashboard = new GridDashboard();
         dashboard.setSizeFull();
@@ -51,7 +63,6 @@ public class DemoUI extends UI {
 
         mapWidget = new Label("Map Component");
         mapWidget.setSizeFull();
-        showWidgetToolbarWindow();
 
         sideMenu.setContent(contents);
 
@@ -65,23 +76,24 @@ public class DemoUI extends UI {
         toolbarWrapper.setHeight("50px");
         toolbarWrapper.setWidth("100%");
         toolbarWrapper.setMargin(new MarginInfo(false, true));
-        
+
         dashboardMenu.addItem("Resize", VaadinIcons.RESIZE_H, item -> {
             int rows = dashboard.getRows();
             int columns = dashboard.getColumns();
-            
+
             SizeDialog dialog = new SizeDialog();
             dialog.setResizeCallback((width, height) -> {
                 if (!dashboard.canSetDimensions(width, height)) {
-                    Notification.show("Invalid dashboard dimensions!", Notification.Type.ERROR_MESSAGE);
+                    Notification.show("Invalid dashboard dimensions!",
+                            Notification.Type.ERROR_MESSAGE);
                     return false;
                 }
                 dashboard.setDimensions(width, height);
                 return true;
             });
-            dialog.show(columns,rows);
+            dialog.show(columns, rows);
         });
-        
+
         dashboardMenu.addItem("Save", FontAwesome.FLOPPY_O, item -> {
             Notification.show("Not Implemented");
         });
@@ -90,19 +102,35 @@ public class DemoUI extends UI {
         });
 
         toolbarWrapper.addComponent(dashboardMenu);
-        toolbarWrapper.setComponentAlignment(dashboardMenu, Alignment.MIDDLE_RIGHT);
+        toolbarWrapper.setComponentAlignment(dashboardMenu,
+                Alignment.MIDDLE_RIGHT);
 
         return toolbarWrapper;
     }
 
     private void showWidgetToolbarWindow() {
-        WidgetToolbar toolbar = new WidgetToolbar();
-        addWindow(toolbar);
+        Bundle bundle = FrameworkUtil.getBundle(DemoUI.class);
+        BundleContext context = bundle.getBundleContext();
+        WidgetToolbar service = new WidgetToolbar();
+
+        List<IWidgetContribution> widgets = new ArrayList<>();
+        try {
+            for (ServiceReference<IWidgetContribution> contribution : context
+                    .getServiceReferences(IWidgetContribution.class, null)) {
+                IWidgetContribution contr = context.getService(contribution);
+                widgets.add(contr);
+            }
+        } catch (InvalidSyntaxException e) {
+            e.printStackTrace();
+        }
+        service.setWidgets(widgets);
+        addWindow(service);
     }
 
     @WebServlet(urlPatterns = "/*", name = "DemoUIServlet", asyncSupported = true)
     @VaadinServletConfiguration(ui = DemoUI.class, productionMode = false)
     @Component(service = VaadinServlet.class)
     public static class DemoUIServlet extends VaadinServlet {
+
     }
 }
