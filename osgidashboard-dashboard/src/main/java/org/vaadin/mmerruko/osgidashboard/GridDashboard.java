@@ -1,6 +1,9 @@
 package org.vaadin.mmerruko.osgidashboard;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -12,6 +15,7 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.Notification;
+import com.vaadin.ui.dnd.DragSourceExtension;
 
 public class GridDashboard extends GridLayout {
     public interface IWidgetFactory {
@@ -43,7 +47,12 @@ public class GridDashboard extends GridLayout {
                 this);
         dropTarget.addGridLayoutDropListener(dropEvent -> {
             dropEvent.getDragData().ifPresent(data -> {
-                acceptDrop(dropEvent.getColumn(), dropEvent.getRow(), data);
+                if (data instanceof DashboardWidgetFrame) {
+                    changeWidgetLocationRequest(dropEvent.getColumn(),
+                            dropEvent.getRow(), (DashboardWidgetFrame) data);
+                } else {
+                    acceptDrop(dropEvent.getColumn(), dropEvent.getRow(), data);
+                }
             });
         });
     }
@@ -80,7 +89,85 @@ public class GridDashboard extends GridLayout {
                     area.getRow2() - area.getRow1() + 1);
 
         });
+        configureInternalDashboardDnd(widget);
         return widget;
+    }
+
+    private void configureInternalDashboardDnd(DashboardWidgetFrame widget) {
+        DragSourceExtension<DashboardWidgetFrame> dragSource = new DragSourceExtension<>(
+                widget);
+        dragSource.addDragStartListener(e -> {
+            dragSource.setDragData(widget);
+        });
+        dragSource.addDragEndListener(e -> {
+            dragSource.setDragData(null);
+        });
+    }
+
+    private void changeWidgetLocationRequest(int column, int row,
+            DashboardWidgetFrame sourceWidget) {
+        Area sourceArea = getComponentArea(sourceWidget);
+        int sourceWidth = sourceArea.getColumn2() - sourceArea.getColumn1() + 1;
+        int sourceHeight = sourceArea.getRow2() - sourceArea.getRow1() + 1;
+
+        if (isTargetAreaEmpty(sourceWidget, column, row,
+                column + sourceWidth - 1, row + sourceHeight - 1)) {
+            removeComponent(sourceWidget);
+            removePlaceholders();
+            addComponent(sourceWidget, column, row, column + sourceWidth - 1,
+                    row + sourceHeight - 1);
+            fillWithPlaceholders();
+        } else {
+            DashboardWidgetFrame targetWidget = (DashboardWidgetFrame) getComponent(
+                    column, row);
+            Area targetArea = getComponentArea(targetWidget);
+
+            int targetWidth = targetArea.getColumn2() - targetArea.getColumn1()
+                    + 1;
+            int targetHeight = targetArea.getRow2() - targetArea.getRow1() + 1;
+            if (sourceWidth == targetWidth && sourceHeight == targetHeight) {
+                removePlaceholders();
+                removeComponent(targetWidget);
+                removeComponent(sourceWidget);
+
+                addComponent(sourceWidget, targetArea.getColumn1(),
+                        targetArea.getRow1(), targetArea.getColumn2(),
+                        targetArea.getRow2());
+                addComponent(targetWidget, sourceArea.getColumn1(),
+                        sourceArea.getRow1(), sourceArea.getColumn2(),
+                        sourceArea.getRow2());
+                fillWithPlaceholders();
+            } else {
+                // Check if there is enough space for a swap
+                boolean targetAreaEmpty = isTargetAreaEmpty(
+                        Arrays.asList(sourceWidget, targetWidget),
+                        sourceArea.getColumn1(), sourceArea.getRow1(),
+                        sourceArea.getColumn1() + targetWidth - 1,
+                        sourceArea.getRow1() + targetHeight - 1);
+
+                boolean sourceAreaEmpty = isTargetAreaEmpty(
+                        Arrays.asList(sourceWidget, targetWidget),
+                        targetArea.getColumn1(), targetArea.getRow1(),
+                        targetArea.getColumn1() + sourceWidth - 1,
+                        targetArea.getRow1() + sourceHeight - 1);
+                if (targetAreaEmpty && sourceAreaEmpty) {
+                    removePlaceholders();
+                    removeComponent(targetWidget);
+                    removeComponent(sourceWidget);
+
+                    addComponent(sourceWidget, targetArea.getColumn1(),
+                            targetArea.getRow1(),
+                            targetArea.getColumn1() + sourceWidth - 1,
+                            targetArea.getRow1() + sourceHeight - 1);
+
+                    addComponent(targetWidget, sourceArea.getColumn1(),
+                            sourceArea.getRow1(),
+                            sourceArea.getColumn1() + targetWidth - 1,
+                            sourceArea.getRow1() + targetHeight - 1);
+                    fillWithPlaceholders();
+                }
+            }
+        }
     }
 
     /**
@@ -175,7 +262,13 @@ public class GridDashboard extends GridLayout {
                 newRow2);
     }
 
-    private boolean isTargetAreaEmpty(DashboardWidgetFrame existingComponent,
+    private boolean isTargetAreaEmpty(DashboardWidgetFrame widget, int column1,
+            int row1, int column2, int row2) {
+        return isTargetAreaEmpty(Collections.singletonList(widget), column1,
+                row1, column2, row2);
+    }
+
+    private boolean isTargetAreaEmpty(List<DashboardWidgetFrame> list,
             int column1, int row1, int column2, int row2) {
         if (column2 >= getColumns() || row2 >= getRows()) {
             return false;
@@ -187,7 +280,7 @@ public class GridDashboard extends GridLayout {
              * This is the entry for the widget we are checking there's no point
              * for checking for an overlap
              */
-            if (data.getKey() == existingComponent) {
+            if (list.contains(data.getKey())) {
                 continue;
             }
 
@@ -245,12 +338,14 @@ public class GridDashboard extends GridLayout {
     }
 
     public boolean canAddWidget(Component widget, int column, int row) {
-        return isTargetAreaEmpty(null, column, row, column, row);
+        return isTargetAreaEmpty(Collections.emptyList(), column, row, column,
+                row);
     }
 
     public boolean canAddWidget(Component widget, int column, int row,
             int width, int height) {
-        return isTargetAreaEmpty(null, column, row, column, row);
+        return isTargetAreaEmpty(Collections.emptyList(), column, row, column,
+                row);
     }
 
     public void addWidget(Component component, int column, int row) {
