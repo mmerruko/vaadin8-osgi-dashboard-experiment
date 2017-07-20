@@ -38,7 +38,7 @@ public class GridDashboard extends GridLayout {
     }
 
     public GridDashboard() {
-        super(5, 5);
+        super(3, 2);
         addStyleName("dashboard");
 
         setSpacing(true);
