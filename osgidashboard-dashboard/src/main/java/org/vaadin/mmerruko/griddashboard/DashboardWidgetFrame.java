@@ -62,4 +62,9 @@ public class DashboardWidgetFrame extends CssLayout {
     public void addMenuAction(String caption, Resource icon, Runnable action) {
         root.addItem(caption, icon, (item) -> action.run());
     }
+
+    public void setContent(Component newContent) {
+        replaceComponent(content, newContent);
+        content = newContent;
+    }
 }

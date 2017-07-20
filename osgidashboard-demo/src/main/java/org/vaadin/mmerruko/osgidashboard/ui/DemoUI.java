@@ -1,15 +1,19 @@
 package org.vaadin.mmerruko.osgidashboard.ui;
 
+import java.util.Hashtable;
+
 import javax.servlet.annotation.WebServlet;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Component;
 import org.vaadin.mmerruko.griddashboard.GridDashboard;
-import org.vaadin.mmerruko.griddashboard.GridDashboard.IWidgetRegistry;
+import org.vaadin.mmerruko.griddashboard.IWidgetRegistry;
 import org.vaadin.mmerruko.griddashboard.SizeDialog;
+import org.vaadin.mmerruko.griddashboard.WidgetStatusListener;
 import org.vaadin.mmerruko.osgidashboard.widgetset.DashboardWidgetset;
 import org.vaadin.teemusa.sidemenu.SideMenu;
 
@@ -37,6 +41,8 @@ public class DemoUI extends UI {
 
     private ServiceReference<WidgetToolbar> toolbarServiceRef;
     private ServiceReference<IWidgetRegistry> registryServiceRef;
+    private IWidgetRegistry service;
+    private ServiceRegistration<WidgetStatusListener> widgetStatusListener;
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {
@@ -49,6 +55,8 @@ public class DemoUI extends UI {
 
         GridDashboard dashboard = new GridDashboard();
         dashboard.setSizeFull();
+        dashboard.setRegistry(service);
+        registerWidgetStatusListener(dashboard);
 
         VerticalLayout contents = new VerticalLayout();
         contents.setMargin(false);
@@ -58,12 +66,31 @@ public class DemoUI extends UI {
         contents.setSizeFull();
         contents.setExpandRatio(dashboard, 1);
 
-        IWidgetRegistry service = getService(registryServiceRef);
-        dashboard.setWidgetRegistry(service);
-
         sideMenu.setContent(contents);
 
         setContent(sideMenu);
+    }
+
+    private void registerWidgetStatusListener(GridDashboard dashboard) {
+        if (service != null) {
+            widgetStatusListener = getBundleContext().registerService(WidgetStatusListener.class, new WidgetStatusListener() {
+                
+                @Override
+                public void widgetTypeEnabled(String typeID) {
+                    access(() -> dashboard.widgetTypeEnabled(typeID));
+                }
+                
+                @Override
+                public void widgetTypeDisabled(String typeID) {
+                    access(() -> dashboard.widgetTypeDisabled(typeID));
+                }
+            }, new Hashtable<>());
+        }
+    }
+
+    private BundleContext getBundleContext() {
+        Bundle bundle = FrameworkUtil.getBundle(DemoUI.class);
+        return bundle.getBundleContext();
     }
 
     private HorizontalLayout createDashboardToolbar(GridDashboard dashboard) {
@@ -111,13 +138,12 @@ public class DemoUI extends UI {
         registryServiceRef = getServiceReference(IWidgetRegistry.class);
         if (registryServiceRef != null) {
             registryServiceRef = getServiceReference(IWidgetRegistry.class);
+            service = getService(registryServiceRef);
         }
     }
 
     private <T> ServiceReference<T> getServiceReference(Class<T> service) {
-        Bundle bundle = FrameworkUtil.getBundle(DemoUI.class);
-        BundleContext context = bundle.getBundleContext();
-        return context.getServiceReference(service);
+        return getBundleContext().getServiceReference(service);
     }
 
     @Override
@@ -125,16 +151,16 @@ public class DemoUI extends UI {
         super.detach();
         ungetService(registryServiceRef);
         ungetService(toolbarServiceRef);
+        if (widgetStatusListener != null) {
+            widgetStatusListener.unregister();
+        }
     }
 
     private <T> void ungetService(ServiceReference<T> ref) {
         if (ref == null)
             return;
-
-        Bundle bundle = FrameworkUtil.getBundle(DemoUI.class);
-        BundleContext context = bundle.getBundleContext();
         try {
-            context.ungetService(ref);
+            getBundleContext().ungetService(ref);
         } catch (IllegalStateException e) {
             e.printStackTrace();
         }
@@ -153,9 +179,7 @@ public class DemoUI extends UI {
         if (serviceRef == null)
             return null;
 
-        Bundle bundle = FrameworkUtil.getBundle(DemoUI.class);
-        BundleContext context = bundle.getBundleContext();
-        return context.getService(serviceRef);
+        return getBundleContext().getService(serviceRef);
     }
 
     private void showWidgetToolbarWindow() {

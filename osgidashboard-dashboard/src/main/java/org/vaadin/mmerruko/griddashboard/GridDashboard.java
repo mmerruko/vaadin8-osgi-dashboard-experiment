@@ -14,22 +14,19 @@ import org.vaadin.mmerruko.griddashboard.dnd.GridLayoutDropTargetExtension;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.Connector;
 import com.vaadin.shared.ui.gridlayout.GridLayoutState.ChildComponentData;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.dnd.DragSourceExtension;
+import com.vaadin.ui.themes.ValoTheme;
 
-public class GridDashboard extends GridLayout {
-    public interface IWidgetRegistry {
-        Widget createDefaultWidget(String typeID);
-
-        Component createWidgetComponent(String typeID);
-
-        boolean isKnownType(String typeID);
-    }
+public class GridDashboard extends GridLayout implements WidgetStatusListener {
+    private static final String UNKNOWN_TYPE = "Unknown Widget Type";
 
     private Optional<IWidgetRegistry> registry = Optional.empty();
 
@@ -237,10 +234,6 @@ public class GridDashboard extends GridLayout {
         fillWithPlaceholders();
     }
 
-    public void setWidgetRegistry(IWidgetRegistry factory) {
-        this.registry = Optional.ofNullable(factory);
-    }
-
     private void fillWithPlaceholders() {
         for (int row = 0; row < getRows(); row++) {
             for (int column = 0; column < getColumns(); column++) {
@@ -382,7 +375,7 @@ public class GridDashboard extends GridLayout {
         if (registry.isPresent()) {
             widgetComponent = registry.get().createWidgetComponent(typeID);
         } else {
-            widgetComponent = createUnknownWidget();
+            widgetComponent = createUnknownWidget(typeID);
         }
 
         DashboardWidgetFrame widgetControls = wrap(widget, widgetComponent);
@@ -404,11 +397,48 @@ public class GridDashboard extends GridLayout {
                 column + widget.getWidth() - 1, row + widget.getHeight() - 1);
     }
 
-    private Component createUnknownWidget() {
-        return new Label("Unknown");
+    private Component createUnknownWidget(String typeID) {
+        VerticalLayout wrapper = new VerticalLayout();
+        wrapper.setSizeFull();
+
+        Label unknownWidgetLabel = new Label(UNKNOWN_TYPE);
+        unknownWidgetLabel.setWidth("100%");
+        unknownWidgetLabel.addStyleName(ValoTheme.LABEL_TINY);
+        unknownWidgetLabel.addStyleName(ValoTheme.LABEL_FAILURE);
+
+        wrapper.addComponent(unknownWidgetLabel);
+        wrapper.setComponentAlignment(unknownWidgetLabel,
+                Alignment.MIDDLE_CENTER);
+
+        return wrapper;
     }
 
-    public void disableWidgetsByType(String typeID) {
-        Notification.show("Disable Not Implemented!");
+    public void setRegistry(IWidgetRegistry service) {
+        registry = Optional.ofNullable(service);
+    }
+
+    @Override
+    public void widgetTypeDisabled(String typeID) {
+        List<DashboardWidgetFrame> list = typeToWidget.get(typeID);
+        if (list != null) {
+            for (DashboardWidgetFrame widget : list) {
+                widget.setContent(createUnknownWidget(typeID));
+            }
+        }
+    }
+
+    @Override
+    public void widgetTypeEnabled(String typeID) {
+        List<DashboardWidgetFrame> list = typeToWidget.get(typeID);
+        if (list != null) {
+            for (DashboardWidgetFrame widget : list) {
+                if (registry.isPresent()) {
+                    widget.setContent(
+                            registry.get().createWidgetComponent(typeID));
+                } else {
+                    widget.setContent(createUnknownWidget(typeID));
+                }
+            }
+        }
     }
 }
