@@ -1,23 +1,19 @@
 package org.vaadin.mmerruko.osgidashboard.ui;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.servlet.annotation.WebServlet;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
-import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.annotations.Component;
 import org.vaadin.mmerruko.griddashboard.GridDashboard;
-import org.vaadin.mmerruko.griddashboard.IWidgetContribution;
 import org.vaadin.mmerruko.griddashboard.SizeDialog;
 import org.vaadin.mmerruko.osgidashboard.widgetset.DashboardWidgetset;
 import org.vaadin.mmerruko.osgidashboard.widgetset.DefaultWidgetFactory;
 import org.vaadin.teemusa.sidemenu.SideMenu;
 
+import com.vaadin.annotations.Push;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.VaadinServletConfiguration;
 import com.vaadin.annotations.Widgetset;
@@ -28,17 +24,18 @@ import com.vaadin.server.VaadinServlet;
 import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
 import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.Notification;
+import com.vaadin.ui.Notification.Type;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 
 @Theme(DemoTheme.THEME_NAME)
 @Widgetset(DashboardWidgetset.NAME)
+@Push
 public class DemoUI extends UI {
 
-    private Label mapWidget;
+    private ServiceReference<WidgetToolbar> toolbarServiceRef;
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {
@@ -61,9 +58,6 @@ public class DemoUI extends UI {
         contents.setExpandRatio(dashboard, 1);
 
         dashboard.setWidgetFactory(new DefaultWidgetFactory());
-
-        mapWidget = new Label("Map Component");
-        mapWidget.setSizeFull();
 
         sideMenu.setContent(contents);
 
@@ -109,29 +103,52 @@ public class DemoUI extends UI {
         return toolbarWrapper;
     }
 
-    private void showWidgetToolbarWindow() {
+    @Override
+    public void detach() {
+        super.detach();
+        if (toolbarServiceRef != null) {
+            Bundle bundle = FrameworkUtil.getBundle(DemoUI.class);
+            BundleContext context = bundle.getBundleContext();
+            try {
+                context.ungetService(toolbarServiceRef);
+            } catch (IllegalStateException e) {
+
+            }
+        }
+
+    }
+
+    private WidgetToolbar getToolbar() {
         Bundle bundle = FrameworkUtil.getBundle(DemoUI.class);
         BundleContext context = bundle.getBundleContext();
-        WidgetToolbar service = new WidgetToolbar();
+        if (toolbarServiceRef != null) {
+            try {
+                context.ungetService(toolbarServiceRef);
+            } catch (IllegalStateException e) {
 
-        List<IWidgetContribution> widgets = new ArrayList<>();
-        try {
-            for (ServiceReference<IWidgetContribution> contribution : context
-                    .getServiceReferences(IWidgetContribution.class, null)) {
-                IWidgetContribution contr = context.getService(contribution);
-                widgets.add(contr);
             }
-        } catch (InvalidSyntaxException e) {
-            e.printStackTrace();
         }
-        service.setWidgets(widgets);
-        addWindow(service);
+
+        toolbarServiceRef = context.getServiceReference(WidgetToolbar.class);
+        if (toolbarServiceRef != null) {
+            return context.getService(toolbarServiceRef);
+        }
+        return null;
+    }
+
+    private void showWidgetToolbarWindow() {
+        WidgetToolbar toolbar = getToolbar();
+        if (toolbar != null) {
+            addWindow(toolbar);
+        } else {
+            Notification.show("No Toolbar Service Registered!",
+                    Type.ERROR_MESSAGE);
+        }
     }
 
     @WebServlet(urlPatterns = "/*", name = "DemoUIServlet", asyncSupported = true)
     @VaadinServletConfiguration(ui = DemoUI.class, productionMode = false)
     @Component(service = VaadinServlet.class)
     public static class DemoUIServlet extends VaadinServlet {
-
     }
 }
