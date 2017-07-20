@@ -4,7 +4,10 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
+import org.osgi.framework.Bundle;
+import org.osgi.framework.FrameworkUtil;
 import org.vaadin.addon.vol3.OLMap;
 import org.vaadin.addon.vol3.OLView;
 import org.vaadin.addon.vol3.OLViewOptions;
@@ -29,9 +32,8 @@ import org.vaadin.addon.vol3.source.OLTileWMSSource;
 import org.vaadin.addon.vol3.source.OLTileWMSSourceOptions;
 import org.vaadin.addon.vol3.source.OLVectorSource;
 import org.vaadin.mmerruko.griddashboard.IWidgetContribution;
+import org.vaadin.mmerruko.griddashboard.Widget;
 
-import com.vaadin.icons.VaadinIcons;
-import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
@@ -42,6 +44,8 @@ import com.vaadin.ui.VerticalLayout;
 
 @org.osgi.service.component.annotations.Component(immediate = true)
 public class MapWidgetContribution implements IWidgetContribution {
+    private static final String MAP_WIDGET_TITLE = "Map Widget";
+    
     private static final String SELECT_MODE = "select mode";
     private static final String EDIT_MODE = "edit mode";
     private static final String DRAW_MODE = "draw mode";
@@ -197,13 +201,20 @@ public class MapWidgetContribution implements IWidgetContribution {
     }
 
     @Override
-    public Resource getWidgetIcon() {
-        return VaadinIcons.MAP_MARKER;
+    public Widget createDefaultWidget() {
+        return new Widget(UUID.randomUUID().toString(), getTypeIdentifier());
     }
 
     @Override
-    public String getWidgetTitle() {
-        return "Map Widget";
+    public String getTypeIdentifier() {
+        Bundle bundle = FrameworkUtil.getBundle(MapWidgetContribution.class);
+        return String.format("%s_%s", bundle.getSymbolicName(),
+                MapWidgetContribution.class.getSimpleName());
+    }
+
+    @Override
+    public String getDefaultWidgetTitle() {
+        return MAP_WIDGET_TITLE;
     }
 
 }

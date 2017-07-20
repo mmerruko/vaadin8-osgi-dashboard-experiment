@@ -1,9 +1,12 @@
 package org.vaadin.mmerruko.osgidashboard.widgetset;
 
-import org.vaadin.mmerruko.griddashboard.IWidgetContribution;
+import java.util.UUID;
 
-import com.vaadin.icons.VaadinIcons;
-import com.vaadin.server.Resource;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.FrameworkUtil;
+import org.vaadin.mmerruko.griddashboard.IWidgetContribution;
+import org.vaadin.mmerruko.griddashboard.Widget;
+
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
@@ -13,6 +16,9 @@ import com.vaadin.ui.themes.ValoTheme;
 
 @org.osgi.service.component.annotations.Component(immediate = true)
 public class ButtonWidgetContribution implements IWidgetContribution {
+
+    private static final String BUTTON_TITLE = "Button Widget";
+    private static final String BUTTON_TYPE = "button";
 
     @Override
     public Component createWidgetComponent() {
@@ -30,13 +36,21 @@ public class ButtonWidgetContribution implements IWidgetContribution {
     }
 
     @Override
-    public Resource getWidgetIcon() {
-        return VaadinIcons.BUTTON;
+    public Widget createDefaultWidget() {
+        return new Widget(UUID.randomUUID().toString(), getTypeIdentifier());
     }
 
     @Override
-    public String getWidgetTitle() {
-        return "Hello Button!";
+    public String getTypeIdentifier() {
+        Bundle bundle = FrameworkUtil.getBundle(ButtonWidgetContribution.class);
+        String symbolicName = bundle.getSymbolicName();
+
+        return String.format("%s_%s", symbolicName, BUTTON_TYPE);
+    }
+
+    @Override
+    public String getDefaultWidgetTitle() {
+        return BUTTON_TITLE;
     }
 
 }

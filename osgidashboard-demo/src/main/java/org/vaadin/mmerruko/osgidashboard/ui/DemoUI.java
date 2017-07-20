@@ -8,9 +8,9 @@ import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.annotations.Component;
 import org.vaadin.mmerruko.griddashboard.GridDashboard;
+import org.vaadin.mmerruko.griddashboard.GridDashboard.IWidgetRegistry;
 import org.vaadin.mmerruko.griddashboard.SizeDialog;
 import org.vaadin.mmerruko.osgidashboard.widgetset.DashboardWidgetset;
-import org.vaadin.mmerruko.osgidashboard.widgetset.DefaultWidgetFactory;
 import org.vaadin.teemusa.sidemenu.SideMenu;
 
 import com.vaadin.annotations.Push;
@@ -36,6 +36,7 @@ import com.vaadin.ui.VerticalLayout;
 public class DemoUI extends UI {
 
     private ServiceReference<WidgetToolbar> toolbarServiceRef;
+    private ServiceReference<IWidgetRegistry> registryServiceRef;
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {
@@ -57,7 +58,8 @@ public class DemoUI extends UI {
         contents.setSizeFull();
         contents.setExpandRatio(dashboard, 1);
 
-        dashboard.setWidgetFactory(new DefaultWidgetFactory());
+        IWidgetRegistry service = getService(registryServiceRef);
+        dashboard.setWidgetRegistry(service);
 
         sideMenu.setContent(contents);
 
@@ -104,36 +106,56 @@ public class DemoUI extends UI {
     }
 
     @Override
+    public void attach() {
+        super.attach();
+        registryServiceRef = getServiceReference(IWidgetRegistry.class);
+        if (registryServiceRef != null) {
+            registryServiceRef = getServiceReference(IWidgetRegistry.class);
+        }
+    }
+
+    private <T> ServiceReference<T> getServiceReference(Class<T> service) {
+        Bundle bundle = FrameworkUtil.getBundle(DemoUI.class);
+        BundleContext context = bundle.getBundleContext();
+        return context.getServiceReference(service);
+    }
+
+    @Override
     public void detach() {
         super.detach();
-        if (toolbarServiceRef != null) {
-            Bundle bundle = FrameworkUtil.getBundle(DemoUI.class);
-            BundleContext context = bundle.getBundleContext();
-            try {
-                context.ungetService(toolbarServiceRef);
-            } catch (IllegalStateException e) {
+        ungetService(registryServiceRef);
+        ungetService(toolbarServiceRef);
+    }
 
-            }
+    private <T> void ungetService(ServiceReference<T> ref) {
+        if (ref == null)
+            return;
+
+        Bundle bundle = FrameworkUtil.getBundle(DemoUI.class);
+        BundleContext context = bundle.getBundleContext();
+        try {
+            context.ungetService(ref);
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
         }
-
     }
 
     private WidgetToolbar getToolbar() {
-        Bundle bundle = FrameworkUtil.getBundle(DemoUI.class);
-        BundleContext context = bundle.getBundleContext();
+        ungetService(toolbarServiceRef);
+        toolbarServiceRef = getServiceReference(WidgetToolbar.class);
         if (toolbarServiceRef != null) {
-            try {
-                context.ungetService(toolbarServiceRef);
-            } catch (IllegalStateException e) {
-
-            }
-        }
-
-        toolbarServiceRef = context.getServiceReference(WidgetToolbar.class);
-        if (toolbarServiceRef != null) {
-            return context.getService(toolbarServiceRef);
+            return getService(toolbarServiceRef);
         }
         return null;
+    }
+
+    private <T> T getService(ServiceReference<T> serviceRef) {
+        if (serviceRef == null)
+            return null;
+
+        Bundle bundle = FrameworkUtil.getBundle(DemoUI.class);
+        BundleContext context = bundle.getBundleContext();
+        return context.getService(serviceRef);
     }
 
     private void showWidgetToolbarWindow() {

@@ -1,11 +1,13 @@
 package org.vaadin.mmerruko.griddashboard;
 
-import com.vaadin.server.Resource;
 import com.vaadin.ui.Component;
 
 public interface IWidgetContribution {
+    Widget createDefaultWidget();
+
     Component createWidgetComponent();
+
+    String getTypeIdentifier();
     
-    Resource getWidgetIcon();
-    String getWidgetTitle();
+    String getDefaultWidgetTitle();
 }

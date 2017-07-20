@@ -94,15 +94,14 @@ public class WidgetToolbar extends Window {
     }
 
     private Label createToolbarItem(IWidgetContribution contribution) {
-        Label toolbarItem = new Label(contribution.getWidgetTitle());
+        Label toolbarItem = new Label(contribution.getDefaultWidgetTitle());
         toolbarItem.setWidth("100%");
         toolbarItem.addStyleName(ValoTheme.LABEL_COLORED);
-        toolbarItem.setIcon(contribution.getWidgetIcon());
 
         DragSourceExtension<Label> sourceExtension = new DragSourceExtension<>(
                 toolbarItem);
         sourceExtension.addDragStartListener(e -> {
-            sourceExtension.setDragData(contribution);
+            sourceExtension.setDragData(contribution.getTypeIdentifier());
         });
         sourceExtension.addDragEndListener(e -> {
             sourceExtension.setDragData(null);

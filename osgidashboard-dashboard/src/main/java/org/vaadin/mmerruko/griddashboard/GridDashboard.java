@@ -1,35 +1,40 @@
 package org.vaadin.mmerruko.griddashboard;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 
 import org.vaadin.mmerruko.griddashboard.dnd.GridLayoutDropTargetExtension;
 
-import java.util.Optional;
-
 import com.vaadin.icons.VaadinIcons;
-import com.vaadin.server.Resource;
 import com.vaadin.shared.Connector;
 import com.vaadin.shared.ui.gridlayout.GridLayoutState.ChildComponentData;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.GridLayout;
+import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
+import com.vaadin.ui.Notification.Type;
 import com.vaadin.ui.dnd.DragSourceExtension;
 
 public class GridDashboard extends GridLayout {
-    public interface IWidgetFactory {
-        public Component createWidgetComponent(Object data);
-        public String getWidgetTitle(Object data);
-        public Resource getWidgetIcon(Object data);
+    public interface IWidgetRegistry {
+        Widget createDefaultWidget(String typeID);
+
+        Component createWidgetComponent(String typeID);
+
+        boolean isKnownType(String typeID);
     }
 
-    private Optional<IWidgetFactory> factory = Optional.empty();
-    private Map<Component, DashboardWidgetFrame> componentToWidget = new LinkedHashMap<>();
+    private Optional<IWidgetRegistry> registry = Optional.empty();
+
+    private Map<Widget, DashboardWidgetFrame> componentToWidget = new LinkedHashMap<>();
+    private Map<String, List<DashboardWidgetFrame>> typeToWidget = new LinkedHashMap<>();
 
     private class Placeholder extends CssLayout {
         public Placeholder() {
@@ -56,47 +61,58 @@ public class GridDashboard extends GridLayout {
                 if (data instanceof DashboardWidgetFrame) {
                     changeWidgetLocationRequest(dropEvent.getColumn(),
                             dropEvent.getRow(), (DashboardWidgetFrame) data);
+                } else if (data instanceof String) {
+                    acceptDrop(dropEvent.getColumn(), dropEvent.getRow(),
+                            (String) data);
                 } else {
-                    acceptDrop(dropEvent.getColumn(), dropEvent.getRow(), data);
+                    String type = data != null ? data.getClass().getName()
+                            : "null";
+                    String message = String
+                            .format("Unrecognized type of data '%s'", type);
+                    Notification.show(message, Type.ERROR_MESSAGE);
                 }
             });
         });
     }
 
-    private void acceptDrop(int column, int row, Object data) {
-        factory.ifPresent(f -> {
-            Component widgetComponent = f.createWidgetComponent(data);
-            if (canAddWidget(widgetComponent, column, row)) {
-                addWidget(widgetComponent, f.getWidgetTitle(data), column, row);
+    private void acceptDrop(int column, int row, String data) {
+        registry.ifPresent(f -> {
+            if (canAddWidget(column, row)) {
+                Widget widget = f.createDefaultWidget(data);
+                addWidget(widget, column, row);
             }
+
         });
     }
 
-    private DashboardWidgetFrame wrap(String widgetTitle, Component component) {
-        DashboardWidgetFrame widget = new DashboardWidgetFrame(component);
-        widget.setWidgetTitle(widgetTitle);
-        widget.addMenuAction("Resize", VaadinIcons.RESIZE_V, () -> {
+    private DashboardWidgetFrame wrap(Widget widget, Component component) {
+        DashboardWidgetFrame widgetFrame = new DashboardWidgetFrame(component);
+        widgetFrame.setWidgetTitle(widget.getTitle());
+        widgetFrame.addMenuAction("Resize", VaadinIcons.RESIZE_V, () -> {
             SizeDialog dialog = new SizeDialog();
 
             dialog.setResizeCallback((width, height) -> {
-                if (!isNewWidgetSizeValid(widget.getContent(), width, height)) {
+                if (!isNewWidgetSizeValid(widget, width, height)) {
                     Notification.show("Ivalid Size!",
                             Notification.Type.ERROR_MESSAGE);
                     return false;
                 }
 
-                setWidgetSize(widget.getContent(), width, height);
+                widget.setHeight(height);
+                widget.setWidth(width);
+
+                setWidgetSize(widget, width, height);
                 return true;
 
             });
 
-            Area area = getComponentArea(widget);
+            Area area = getComponentArea(widgetFrame);
             dialog.show(area.getColumn2() - area.getColumn1() + 1,
                     area.getRow2() - area.getRow1() + 1);
 
         });
-        configureInternalDashboardDnd(widget);
-        return widget;
+        configureInternalDashboardDnd(widgetFrame);
+        return widgetFrame;
     }
 
     private void configureInternalDashboardDnd(DashboardWidgetFrame widget) {
@@ -221,8 +237,8 @@ public class GridDashboard extends GridLayout {
         fillWithPlaceholders();
     }
 
-    public void setWidgetFactory(IWidgetFactory factory) {
-        this.factory = Optional.ofNullable(factory);
+    public void setWidgetRegistry(IWidgetRegistry factory) {
+        this.registry = Optional.ofNullable(factory);
     }
 
     private void fillWithPlaceholders() {
@@ -245,8 +261,7 @@ public class GridDashboard extends GridLayout {
      * @param height
      * @return
      */
-    public boolean isNewWidgetSizeValid(Component widget, int width,
-            int height) {
+    public boolean isNewWidgetSizeValid(Widget widget, int width, int height) {
         DashboardWidgetFrame widgetFrame = componentToWidget.get(widget);
         if (widgetFrame == null) {
             return false;
@@ -310,7 +325,7 @@ public class GridDashboard extends GridLayout {
         return true;
     }
 
-    public void setWidgetSize(Component widget, int width, int height) {
+    public void setWidgetSize(Widget widget, int width, int height) {
         if (width < 1 || height < 1) {
             throw new IllegalArgumentException(
                     "Width and height have to be equal to or greater than 1!");
@@ -343,33 +358,57 @@ public class GridDashboard extends GridLayout {
         }
     }
 
-    public boolean canAddWidget(Component widget, int column, int row) {
+    public boolean canAddWidget(int column, int row) {
         return isTargetAreaEmpty(Collections.emptyList(), column, row, column,
                 row);
     }
 
-    public boolean canAddWidget(Component widget, int column, int row,
-            int width, int height) {
+    public boolean canAddWidget(int column, int row, int width, int height) {
         return isTargetAreaEmpty(Collections.emptyList(), column, row, column,
                 row);
     }
 
-    public void addWidget(Component component, String title, int column, int row) {
-        if (!canAddWidget(component, column, row)) {
+    public void addWidget(Widget widget, int column, int row) {
+        if (!canAddWidget(column, row, widget.getWidth(), widget.getHeight())) {
             String message = String.format(
-                    "Can't add widget in column %d and row %d! Widget already exists in that area!",
-                    column, row);
+                    "Can't add widget with width %d and height %d in column %d and row %d! Widget already exists in that area!",
+                    widget.getWidth(), widget.getHeight(), column, row);
             throw new IllegalArgumentException(message);
         }
-        
-        DashboardWidgetFrame widget = wrap(title, component);
-        componentToWidget.put(component, widget);
+
+        String typeID = widget.getWidgetTypeIdentifier();
+
+        final Component widgetComponent;
+        if (registry.isPresent()) {
+            widgetComponent = registry.get().createWidgetComponent(typeID);
+        } else {
+            widgetComponent = createUnknownWidget();
+        }
+
+        DashboardWidgetFrame widgetControls = wrap(widget, widgetComponent);
+        componentToWidget.put(widget, widgetControls);
+
+        List<DashboardWidgetFrame> list = typeToWidget.get(typeID);
+        if (list == null) {
+            list = new ArrayList<>();
+            typeToWidget.put(typeID, list);
+        }
+        list.add(widgetControls);
 
         Component placeholder = getComponent(column, row);
         if (placeholder instanceof Placeholder) {
             removeComponent(placeholder);
         }
 
-        addComponent(widget, column, row);
+        addComponent(widgetControls, column, row,
+                column + widget.getWidth() - 1, row + widget.getHeight() - 1);
+    }
+
+    private Component createUnknownWidget() {
+        return new Label("Unknown");
+    }
+
+    public void disableWidgetsByType(String typeID) {
+        Notification.show("Disable Not Implemented!");
     }
 }
