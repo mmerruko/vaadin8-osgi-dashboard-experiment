@@ -1,13 +1,16 @@
 package org.vaadin.mmerruko.griddashboard;
 
 public class Widget {
-    private final String widgetIdentifier;
-    private final String widgetTypeIdentifier;
+    private String widgetIdentifier;
+    private String widgetTypeIdentifier;
 
     private String title;
 
     private int width = 1;
     private int height = 1;
+
+    public Widget() {
+    }
 
     public Widget(String identifier, String typeIdentifier) {
         widgetIdentifier = identifier;
@@ -42,7 +45,15 @@ public class Widget {
         return widgetIdentifier;
     }
 
+    public void setWidgetIdentifier(String widgetIdentifier) {
+        this.widgetIdentifier = widgetIdentifier;
+    }
+
     public String getWidgetTypeIdentifier() {
         return widgetTypeIdentifier;
+    }
+
+    public void setWidgetTypeIdentifier(String widgetTypeIdentifier) {
+        this.widgetTypeIdentifier = widgetTypeIdentifier;
     }
 }

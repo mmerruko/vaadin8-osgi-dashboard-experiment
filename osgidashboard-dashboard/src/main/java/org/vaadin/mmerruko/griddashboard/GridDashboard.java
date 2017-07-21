@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 
+import org.vaadin.mmerruko.griddashboard.GridDashboardModel.WidgetData;
+import org.vaadin.mmerruko.griddashboard.GridDashboardModel.WidgetLocation;
 import org.vaadin.mmerruko.griddashboard.dnd.GridLayoutDropTargetExtension;
 
 import com.vaadin.icons.VaadinIcons;
@@ -371,10 +373,11 @@ public class GridDashboard extends GridLayout implements WidgetStatusListener {
 
         String typeID = widget.getWidgetTypeIdentifier();
 
-        final Component widgetComponent;
+        Component widgetComponent = null;
         if (registry.isPresent()) {
             widgetComponent = registry.get().createWidgetComponent(typeID);
-        } else {
+        }
+        if (widgetComponent == null) {
             widgetComponent = createUnknownWidget(typeID);
         }
 
@@ -440,5 +443,42 @@ public class GridDashboard extends GridLayout implements WidgetStatusListener {
                 }
             }
         }
+    }
+
+    public GridDashboardModel buildModel() {
+        GridDashboardModel model = new GridDashboardModel();
+        model.setDashboardHeight(getRows());
+        model.setDashboardWidth(getColumns());
+
+        for (Entry<Widget, DashboardWidgetFrame> widgets : componentToWidget
+                .entrySet()) {
+            Widget widget = widgets.getKey();
+            DashboardWidgetFrame widgetFrame = widgets.getValue();
+            
+            Area area = getComponentArea(widgetFrame);
+            
+            model.addWidget(widget, area.getColumn1(), area.getRow1());
+        }
+        return model;
+    }
+
+    public void loadModel(GridDashboardModel model) {
+        removeAllComponents();
+        componentToWidget.clear();
+        typeToWidget.clear();
+        setRows(model.getDashboardHeight());
+        setColumns(model.getDashboardWidth());
+
+        for (WidgetData data : model.getWidgets()) {
+            WidgetLocation location = data.getLocation();
+            Widget widget = data.getWidget();
+
+            if (canAddWidget(location.getColumn(), location.getRow(),
+                    widget.getWidth(), widget.getHeight())) {
+                addWidget(widget, location.getColumn(), location.getRow());
+            }
+        }
+
+        fillWithPlaceholders();
     }
 }
