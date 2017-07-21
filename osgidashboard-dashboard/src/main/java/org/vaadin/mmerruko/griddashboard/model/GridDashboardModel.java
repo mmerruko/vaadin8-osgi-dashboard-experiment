@@ -1,4 +1,4 @@
-package org.vaadin.mmerruko.griddashboard;
+package org.vaadin.mmerruko.griddashboard.model;
 
 import java.util.ArrayList;
 import java.util.List;

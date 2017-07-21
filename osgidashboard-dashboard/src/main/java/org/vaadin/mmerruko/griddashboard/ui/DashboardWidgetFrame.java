@@ -1,4 +1,4 @@
-package org.vaadin.mmerruko.griddashboard;
+package org.vaadin.mmerruko.griddashboard.ui;
 
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.Resource;

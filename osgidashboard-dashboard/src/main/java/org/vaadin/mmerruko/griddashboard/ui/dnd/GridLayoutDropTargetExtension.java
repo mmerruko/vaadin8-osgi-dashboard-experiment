@@ -1,9 +1,9 @@
-package org.vaadin.mmerruko.griddashboard.dnd;
+package org.vaadin.mmerruko.griddashboard.ui.dnd;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.vaadin.mmerruko.griddashboard.dnd.client.GridLayoutDropTargetRpc;
+import org.vaadin.mmerruko.griddashboard.ui.dnd.client.GridLayoutDropTargetRpc;
 
 import com.vaadin.shared.Registration;
 import com.vaadin.shared.ui.dnd.DropEffect;

@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.vaadin.mmerruko.griddashboard.dnd;
+package org.vaadin.mmerruko.griddashboard.ui.dnd;
 
 import java.lang.reflect.Method;
 

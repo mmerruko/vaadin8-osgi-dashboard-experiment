@@ -1,9 +1,9 @@
-package org.vaadin.mmerruko.griddashboard.dnd.client;
+package org.vaadin.mmerruko.griddashboard.ui.dnd.client;
 
 import java.util.List;
 import java.util.Map;
 
-import org.vaadin.mmerruko.griddashboard.dnd.GridLayoutDropTargetExtension;
+import org.vaadin.mmerruko.griddashboard.ui.dnd.GridLayoutDropTargetExtension;
 
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.NativeEvent;

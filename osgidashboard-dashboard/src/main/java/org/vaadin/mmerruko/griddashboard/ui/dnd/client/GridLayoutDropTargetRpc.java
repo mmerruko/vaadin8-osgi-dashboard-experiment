@@ -1,4 +1,4 @@
-package org.vaadin.mmerruko.griddashboard.dnd.client;
+package org.vaadin.mmerruko.griddashboard.ui.dnd.client;
 /*
  * Copyright 2000-2016 Vaadin Ltd.
  *

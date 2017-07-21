@@ -1,4 +1,4 @@
-package org.vaadin.mmerruko.griddashboard;
+package org.vaadin.mmerruko.griddashboard.ui.dialogs;
 
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;

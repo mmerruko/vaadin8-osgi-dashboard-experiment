@@ -13,7 +13,7 @@ import java.util.List;
 
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
-import org.vaadin.mmerruko.griddashboard.GridDashboardModel;
+import org.vaadin.mmerruko.griddashboard.model.GridDashboardModel;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

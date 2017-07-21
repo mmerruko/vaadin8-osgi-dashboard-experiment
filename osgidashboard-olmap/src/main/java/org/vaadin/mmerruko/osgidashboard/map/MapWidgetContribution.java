@@ -32,7 +32,7 @@ import org.vaadin.addon.vol3.source.OLTileWMSSource;
 import org.vaadin.addon.vol3.source.OLTileWMSSourceOptions;
 import org.vaadin.addon.vol3.source.OLVectorSource;
 import org.vaadin.mmerruko.griddashboard.IWidgetContribution;
-import org.vaadin.mmerruko.griddashboard.Widget;
+import org.vaadin.mmerruko.griddashboard.model.Widget;
 
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;

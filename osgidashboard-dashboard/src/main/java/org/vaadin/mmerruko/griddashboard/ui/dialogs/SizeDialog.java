@@ -1,4 +1,4 @@
-package org.vaadin.mmerruko.griddashboard;
+package org.vaadin.mmerruko.griddashboard.ui.dialogs;
 
 import java.util.Optional;
 

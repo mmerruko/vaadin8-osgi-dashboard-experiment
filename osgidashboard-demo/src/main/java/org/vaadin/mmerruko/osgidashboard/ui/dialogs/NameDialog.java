@@ -2,7 +2,7 @@ package org.vaadin.mmerruko.osgidashboard.ui.dialogs;
 
 import java.util.Optional;
 
-import org.vaadin.mmerruko.griddashboard.Dialog;
+import org.vaadin.mmerruko.griddashboard.ui.dialogs.Dialog;
 
 import com.vaadin.ui.Component;
 import com.vaadin.ui.FormLayout;

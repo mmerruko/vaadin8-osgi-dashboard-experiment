@@ -5,7 +5,7 @@ import java.util.UUID;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkUtil;
 import org.vaadin.mmerruko.griddashboard.IWidgetContribution;
-import org.vaadin.mmerruko.griddashboard.Widget;
+import org.vaadin.mmerruko.griddashboard.model.Widget;
 
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;

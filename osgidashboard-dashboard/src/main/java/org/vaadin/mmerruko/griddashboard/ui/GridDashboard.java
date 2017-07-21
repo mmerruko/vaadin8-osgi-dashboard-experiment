@@ -1,4 +1,4 @@
-package org.vaadin.mmerruko.griddashboard;
+package org.vaadin.mmerruko.griddashboard.ui;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -9,9 +9,14 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 
-import org.vaadin.mmerruko.griddashboard.GridDashboardModel.WidgetData;
-import org.vaadin.mmerruko.griddashboard.GridDashboardModel.WidgetLocation;
-import org.vaadin.mmerruko.griddashboard.dnd.GridLayoutDropTargetExtension;
+import org.vaadin.mmerruko.griddashboard.IWidgetRegistry;
+import org.vaadin.mmerruko.griddashboard.WidgetStatusListener;
+import org.vaadin.mmerruko.griddashboard.model.GridDashboardModel;
+import org.vaadin.mmerruko.griddashboard.model.Widget;
+import org.vaadin.mmerruko.griddashboard.model.GridDashboardModel.WidgetData;
+import org.vaadin.mmerruko.griddashboard.model.GridDashboardModel.WidgetLocation;
+import org.vaadin.mmerruko.griddashboard.ui.dialogs.SizeDialog;
+import org.vaadin.mmerruko.griddashboard.ui.dnd.GridLayoutDropTargetExtension;
 
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.Connector;

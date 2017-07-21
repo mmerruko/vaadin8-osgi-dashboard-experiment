@@ -1,4 +1,4 @@
-package org.vaadin.mmerruko.griddashboard;
+package org.vaadin.mmerruko.griddashboard.model;
 
 public class Widget {
     private String widgetIdentifier;

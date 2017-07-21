@@ -11,8 +11,8 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.vaadin.mmerruko.griddashboard.IWidgetContribution;
 import org.vaadin.mmerruko.griddashboard.IWidgetRegistry;
-import org.vaadin.mmerruko.griddashboard.Widget;
 import org.vaadin.mmerruko.griddashboard.WidgetStatusListener;
+import org.vaadin.mmerruko.griddashboard.model.Widget;
 
 import com.vaadin.ui.Component;
 
