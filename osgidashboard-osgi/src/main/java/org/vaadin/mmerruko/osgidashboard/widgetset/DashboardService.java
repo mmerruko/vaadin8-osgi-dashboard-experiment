@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Component(service = DashboardService.class)
 public class DashboardService {
     private static final String JSON = ".json";
-    public static final String LOCATION_PROPERTY = "dashboard.model.location";
     private Path location;
 
     @Activate

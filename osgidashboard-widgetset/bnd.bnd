@@ -1,0 +1,8 @@
+Bundle-Name: ${project.name}
+Bundle-Version: ${project.version}
+Bundle-SymbolicName: ${project.groupId}.${project.artifactId}
+Export-Package: org.vaadin.mmerruko.osgidashboard.widgetset
+
+Import-Package: \
+	!com.vaadin.v7*,\
+	*

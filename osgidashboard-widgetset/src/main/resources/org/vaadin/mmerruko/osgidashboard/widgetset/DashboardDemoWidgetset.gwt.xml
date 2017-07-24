@@ -19,9 +19,10 @@
 
 
 	<inherits name="org.vaadin.risto.stepper.StepperWidgetset" />
-	<inherits name="org.vaadin.mmerruko.griddashboard.dnd.GridLayoutSlotDropTarget" />
+	<inherits
+		name="org.vaadin.mmerruko.griddashboard.ui.dnd.GridLayoutSlotDropTarget" />
 
-    <inherits name="com.vaadin.contextmenu.WidgetSet" />
+	
 
-    <inherits name="org.vaadin.addon.vol3.WidgetSet" />
+	<inherits name="org.vaadin.addon.vol3.WidgetSet" />
 </module>

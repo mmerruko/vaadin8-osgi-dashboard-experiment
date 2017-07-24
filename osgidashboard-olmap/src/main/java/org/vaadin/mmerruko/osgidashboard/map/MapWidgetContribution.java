@@ -183,7 +183,7 @@ public class MapWidgetContribution implements IWidgetContribution {
         }
     }
 
-    private OLGeometry createPointFeature(double x, double y) {
+    private OLGeometry<?> createPointFeature(double x, double y) {
         return new OLPoint(x, y);
     }
 

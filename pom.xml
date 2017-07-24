@@ -29,11 +29,6 @@
 		<pluginManagement>
 			<plugins>
 				<plugin>
-					<groupId>com.vaadin</groupId>
-					<artifactId>vaadin-maven-plugin</artifactId>
-					<version>${vaadin.plugin.version}</version>
-				</plugin>
-				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-source-plugin</artifactId>
 					<version>3.0.0</version>
@@ -71,6 +66,7 @@
 				<plugin>
 					<groupId>com.vaadin</groupId>
 					<artifactId>vaadin-maven-plugin</artifactId>
+					<version>${vaadin.plugin.version}</version>
 					<executions>
 						<execution>
 							<goals>
@@ -179,5 +175,7 @@
 		<module>osgidashboard-osgi</module>
 		<module>osgidashboard-olmap</module>
 		<module>osgidashboard-karaf</module>
+		<module>osgidashboard-basic</module>
+		<module>osgidashboard-widgetset</module>
 	</modules>
 </project>

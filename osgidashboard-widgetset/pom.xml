@@ -8,8 +8,8 @@
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>osgidashboard-osgi</artifactId>
-	<name>osgidashboard-backend</name>
+	<artifactId>osgidashboard-osgi-widgetset</artifactId>
+	<name>Dashboard Demo Widgetset</name>
 	<packaging>jar</packaging>
 
 	<dependencies>
@@ -31,14 +31,9 @@
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-core</artifactId>
-			<version>2.2.2</version>
-		</dependency>
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-databind</artifactId>
-			<version>2.2.2</version>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>osgidashboard-olmap</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
 
@@ -56,6 +51,10 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>2.19.1</version>
+			</plugin>
+			<plugin>
+				<groupId>com.vaadin</groupId>
+				<artifactId>vaadin-maven-plugin</artifactId>
 			</plugin>
 		</plugins>
 	</build>

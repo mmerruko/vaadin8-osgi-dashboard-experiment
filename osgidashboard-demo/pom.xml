@@ -40,19 +40,24 @@
 			<artifactId>osgi.cmpn</artifactId>
 		</dependency>
 		<dependency>
-            <groupId>org.osgi</groupId>
-            <artifactId>osgi.core</artifactId>
-        </dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>osgi.core</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>osgidashboard-dashboard</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>osgidashboard-osgi</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>osgidashboard-osgi</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>osgidashboard-osgi-widgetset</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>org.vaadin.teemusa</groupId>
 			<artifactId>sidemenu</artifactId>
