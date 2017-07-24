@@ -17,7 +17,7 @@ import org.vaadin.mmerruko.griddashboard.model.Widget;
 import com.vaadin.ui.Component;
 
 @org.osgi.service.component.annotations.Component(service = IWidgetRegistry.class)
-public class DefaultWidgetFactory implements IWidgetRegistry {
+public class DefaultWidgetRegistry implements IWidgetRegistry {
     private Map<String, IWidgetContribution> contributions = Collections
             .synchronizedMap(new LinkedHashMap<>());
     private List<WidgetStatusListener> listeners = Collections
