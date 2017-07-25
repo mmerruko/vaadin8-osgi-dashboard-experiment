@@ -28,14 +28,15 @@ public class WidgetToolbar extends Window {
             .synchronizedMap(new HashMap<>());
 
     public WidgetToolbar() {
+        setCaption("Widgets");
+        setWidthUndefined();
+        setHeight("300px");
+        
         Panel panel = new Panel();
         content = new FormLayout();
         content.setSpacing(false);
         content.setSizeFull();
         content.addStyleName(ValoTheme.LAYOUT_WELL);
-
-        setWidth("150px");
-        setHeight("300px");
 
         panel.setContent(content);
         panel.setSizeFull();
