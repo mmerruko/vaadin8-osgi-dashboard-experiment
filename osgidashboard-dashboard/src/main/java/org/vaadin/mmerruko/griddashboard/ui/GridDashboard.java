@@ -156,6 +156,12 @@ public class GridDashboard extends GridLayout implements WidgetStatusListener {
         widgetFrame.addMenuAction("Detach", VaadinIcons.ADD_DOCK, () -> {
             showWidgetInFloatingWindow(widget, widgetFrame);
         });
+        widgetFrame.addMenuAction("Delete", VaadinIcons.FILE_REMOVE, () -> {
+            removeComponent(widgetFrame);
+            componentToWidget.remove(widget);
+            fillWithPlaceholders();
+        });
+        
         configureInternalDashboardDnd(widget, widgetFrame);
         return widgetFrame;
     }

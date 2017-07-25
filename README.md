@@ -74,7 +74,6 @@ To solve that run `bundle:list` and then `restart ${bundleId}` where `${bundleId
 At the time of writing this the ideas for further experimentation are :
 
 1. Extend the widget model to include widget properties that can be used to persist widget specific state
-1. Widget removal
 
 ## Feedback
 
