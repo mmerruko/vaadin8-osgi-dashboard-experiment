@@ -74,7 +74,6 @@ To solve that run `bundle:list` and then `restart ${bundleId}` where `${bundleId
 At the time of writing this the ideas for further experimentation are :
 
 1. Extend the widget model to include widget properties that can be used to persist widget specific state
-1. Detach a widget from the Dashboard to its own window and close the window and re-attach the widget to the dashboard (A possible bug in drag and drop makes this difficult as the windows that contain drag sources don't seem to be draggable)
 1. Widget removal
 
 ## Feedback
