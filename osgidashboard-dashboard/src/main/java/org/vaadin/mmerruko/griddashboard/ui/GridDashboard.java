@@ -12,8 +12,10 @@ import java.util.stream.Collectors;
 import org.vaadin.mmerruko.griddashboard.IWidgetRegistry;
 import org.vaadin.mmerruko.griddashboard.WidgetStatusListener;
 import org.vaadin.mmerruko.griddashboard.model.GridDashboardModel;
-import org.vaadin.mmerruko.griddashboard.model.GridDashboardModel.WidgetData;
-import org.vaadin.mmerruko.griddashboard.model.GridDashboardModel.WidgetLocation;
+import org.vaadin.mmerruko.griddashboard.model.GridDashboardModel.CanvasWidgetData;
+import org.vaadin.mmerruko.griddashboard.model.GridDashboardModel.CanvasWidgetLocation;
+import org.vaadin.mmerruko.griddashboard.model.GridDashboardModel.FloatingWidgetData;
+import org.vaadin.mmerruko.griddashboard.model.GridDashboardModel.FloatingWidgetLocation;
 import org.vaadin.mmerruko.griddashboard.model.Widget;
 import org.vaadin.mmerruko.griddashboard.ui.dialogs.SizeDialog;
 import org.vaadin.mmerruko.griddashboard.ui.dnd.GridLayoutDropTargetExtension;
@@ -158,7 +160,8 @@ public class GridDashboard extends GridLayout implements WidgetStatusListener {
         return widgetFrame;
     }
 
-    private void showWidgetInFloatingWindow(Widget widget, DashboardWidgetFrame widgetFrame) {
+    private Window showWidgetInFloatingWindow(Widget widget,
+            DashboardWidgetFrame widgetFrame) {
         Window window = new Window();
 
         Component content = widgetFrame.getContent();
@@ -187,6 +190,7 @@ public class GridDashboard extends GridLayout implements WidgetStatusListener {
 
         removeComponent(widgetFrame);
         fillWithPlaceholders();
+        return window;
     }
 
     private void configureInternalDashboardDnd(Widget widget,
@@ -465,15 +469,15 @@ public class GridDashboard extends GridLayout implements WidgetStatusListener {
     private Component createWidgetComponent(Widget widget) {
         Component widgetComponent = null;
         String typeID = widget.getWidgetTypeIdentifier();
-        
+
         if (registry.isPresent()) {
             widgetComponent = registry.get().createWidgetComponent(typeID);
         }
-        
+
         if (widgetComponent == null) {
             widgetComponent = createUnknownWidget(typeID);
         }
-        
+
         return widgetComponent;
     }
 
@@ -522,6 +526,8 @@ public class GridDashboard extends GridLayout implements WidgetStatusListener {
     }
 
     public GridDashboardModel buildModel() {
+        Page page = Page.getCurrent();
+
         GridDashboardModel model = new GridDashboardModel();
         model.setDashboardHeight(getRows());
         model.setDashboardWidth(getColumns());
@@ -535,8 +541,22 @@ public class GridDashboard extends GridLayout implements WidgetStatusListener {
 
             model.addWidget(widget, area.getColumn1(), area.getRow1());
         }
-        for (Widget floatingWidget : floatingWidgets.keySet()) {
-            model.addFloatingWindowWidget(floatingWidget);
+        for (Entry<Widget, Window> entry : floatingWidgets.entrySet()) {
+            Widget floatingWidget = entry.getKey();
+            Window window = entry.getValue();
+
+            float relativeWidth = window.getWidth()
+                    / page.getBrowserWindowWidth();
+            float relativeHeight = window.getHeight()
+                    / page.getBrowserWindowHeight();
+
+            float relativeX = window.getPositionX()
+                    / (float) page.getBrowserWindowWidth();
+            float relativeY = window.getPositionY()
+                    / (float) page.getBrowserWindowHeight();
+
+            model.addFloatingWindowWidget(floatingWidget, relativeX, relativeY,
+                    relativeWidth, relativeHeight);
         }
         return model;
     }
@@ -544,14 +564,14 @@ public class GridDashboard extends GridLayout implements WidgetStatusListener {
     public void loadModel(GridDashboardModel model) {
         removeAllComponents();
         closeFloatingWindowWidgets();
-        
+
         floatingWidgets.clear();
         componentToWidget.clear();
         setRows(model.getDashboardHeight());
         setColumns(model.getDashboardWidth());
 
-        for (WidgetData data : model.getWidgets()) {
-            WidgetLocation location = data.getLocation();
+        for (CanvasWidgetData data : model.getWidgets()) {
+            CanvasWidgetLocation location = data.getLocation();
             Widget widget = data.getWidget();
 
             if (canAddWidget(location.getColumn(), location.getRow(),
@@ -559,10 +579,33 @@ public class GridDashboard extends GridLayout implements WidgetStatusListener {
                 addWidget(widget, location.getColumn(), location.getRow());
             }
         }
-        
-        for (Widget widget : model.getFloatingWidgets()) {
+
+        for (FloatingWidgetData data : model.getFloatingWidgets()) {
+            Widget widget = data.getWidget();
+            FloatingWidgetLocation location = data.getLocation();
+
             Component component = createWidgetComponent(widget);
-            showWidgetInFloatingWindow(widget, wrap(widget, component));
+
+            Window window = showWidgetInFloatingWindow(widget,
+                    wrap(widget, component));
+
+            Page current = Page.getCurrent();
+
+            int positionX = (int) (current.getBrowserWindowWidth()
+                    * location.getRelativeX());
+            int positionY = (int) (current.getBrowserWindowHeight()
+                    * location.getRelativeY());
+
+            float width = current.getBrowserWindowWidth()
+                    * location.getRelativeWidth();
+            float height = current.getBrowserWindowHeight()
+                    * location.getRelativeHeight();
+
+            window.setPositionX(positionX);
+            window.setPositionY(positionY);
+
+            window.setWidth(width, Unit.PIXELS);
+            window.setHeight(height, Unit.PIXELS);
         }
 
         fillWithPlaceholders();
