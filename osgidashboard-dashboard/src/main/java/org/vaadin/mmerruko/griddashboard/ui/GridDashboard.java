@@ -1,6 +1,5 @@
 package org.vaadin.mmerruko.griddashboard.ui;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -8,17 +7,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.vaadin.mmerruko.griddashboard.IWidgetRegistry;
 import org.vaadin.mmerruko.griddashboard.WidgetStatusListener;
 import org.vaadin.mmerruko.griddashboard.model.GridDashboardModel;
-import org.vaadin.mmerruko.griddashboard.model.Widget;
 import org.vaadin.mmerruko.griddashboard.model.GridDashboardModel.WidgetData;
 import org.vaadin.mmerruko.griddashboard.model.GridDashboardModel.WidgetLocation;
+import org.vaadin.mmerruko.griddashboard.model.Widget;
 import org.vaadin.mmerruko.griddashboard.ui.dialogs.SizeDialog;
 import org.vaadin.mmerruko.griddashboard.ui.dnd.GridLayoutDropTargetExtension;
 
 import com.vaadin.icons.VaadinIcons;
+import com.vaadin.server.Page;
 import com.vaadin.shared.Connector;
 import com.vaadin.shared.ui.gridlayout.GridLayoutState.ChildComponentData;
 import com.vaadin.ui.Alignment;
@@ -29,16 +30,26 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.dnd.DragSourceExtension;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class GridDashboard extends GridLayout implements WidgetStatusListener {
+    private class WindowDropData {
+        Widget widget;
+        Component component;
+    }
+
+    private class CanvasDropData {
+        DashboardWidgetFrame component;
+    }
+
     private static final String UNKNOWN_TYPE = "Unknown Widget Type";
 
     private Optional<IWidgetRegistry> registry = Optional.empty();
 
     private Map<Widget, DashboardWidgetFrame> componentToWidget = new LinkedHashMap<>();
-    private Map<String, List<DashboardWidgetFrame>> typeToWidget = new LinkedHashMap<>();
+    private Map<Widget, Window> floatingWidgets = new LinkedHashMap<>();
 
     private class Placeholder extends CssLayout {
         public Placeholder() {
@@ -62,9 +73,13 @@ public class GridDashboard extends GridLayout implements WidgetStatusListener {
                 this);
         dropTarget.addGridLayoutDropListener(dropEvent -> {
             dropEvent.getDragData().ifPresent(data -> {
-                if (data instanceof DashboardWidgetFrame) {
-                    changeWidgetLocationRequest(dropEvent.getColumn(),
-                            dropEvent.getRow(), (DashboardWidgetFrame) data);
+                if (data instanceof CanvasDropData) {
+                    handleDashboardWidgetFrameDrop(dropEvent.getColumn(),
+                            dropEvent.getRow(),
+                            ((CanvasDropData) data).component);
+                } else if (data instanceof WindowDropData) {
+                    acceptWindowDrop((WindowDropData) data,
+                            dropEvent.getColumn(), dropEvent.getRow());
                 } else if (data instanceof String) {
                     acceptDrop(dropEvent.getColumn(), dropEvent.getRow(),
                             (String) data);
@@ -77,6 +92,27 @@ public class GridDashboard extends GridLayout implements WidgetStatusListener {
                 }
             });
         });
+    }
+
+    private void acceptWindowDrop(WindowDropData dropData, int column,
+            int row) {
+        if (isTargetAreaEmpty(Collections.emptyList(), column, row, column,
+                row)) {
+            dropData.widget.setHeight(1);
+            dropData.widget.setWidth(1);
+            removePlaceholders();
+
+            DashboardWidgetFrame wrap = wrap(dropData.widget,
+                    dropData.component);
+            addComponent(wrap, column, row);
+
+            Window remove = floatingWidgets.remove(dropData.widget);
+            remove.close();
+
+            componentToWidget.put(dropData.widget, wrap);
+
+            fillWithPlaceholders();
+        }
     }
 
     private void acceptDrop(int column, int row, String data) {
@@ -115,22 +151,59 @@ public class GridDashboard extends GridLayout implements WidgetStatusListener {
                     area.getRow2() - area.getRow1() + 1);
 
         });
-        configureInternalDashboardDnd(widgetFrame);
+        widgetFrame.addMenuAction("Detach", VaadinIcons.ADD_DOCK, () -> {
+            showWidgetInFloatingWindow(widget, widgetFrame);
+        });
+        configureInternalDashboardDnd(widget, widgetFrame);
         return widgetFrame;
     }
 
-    private void configureInternalDashboardDnd(DashboardWidgetFrame widget) {
+    private void showWidgetInFloatingWindow(Widget widget, DashboardWidgetFrame widgetFrame) {
+        Window window = new Window();
+
+        Component content = widgetFrame.getContent();
+
+        CssLayout wrapper = new CssLayout();
+        wrapper.addComponent(content);
+
+        DragSourceExtension<CssLayout> dragWrapper = new DragSourceExtension<>(
+                wrapper);
+        dragWrapper.addDragStartListener(e -> {
+            WindowDropData data = new WindowDropData();
+            data.widget = widget;
+            data.component = content;
+            dragWrapper.setDragData(data);
+        });
+        dragWrapper.addDragEndListener(e -> {
+            dragWrapper.setDragData(null);
+        });
+
+        window.setContent(wrapper);
+        window.setCaption(widget.getWidgetIdentifier());
+        getUI().addWindow(window);
+
+        componentToWidget.remove(widget);
+        floatingWidgets.put(widget, window);
+
+        removeComponent(widgetFrame);
+        fillWithPlaceholders();
+    }
+
+    private void configureInternalDashboardDnd(Widget widget,
+            DashboardWidgetFrame widgetFrame) {
         DragSourceExtension<DashboardWidgetFrame> dragSource = new DragSourceExtension<>(
-                widget);
+                widgetFrame);
         dragSource.addDragStartListener(e -> {
-            dragSource.setDragData(widget);
+            CanvasDropData data = new CanvasDropData();
+            data.component = widgetFrame;
+            dragSource.setDragData(data);
         });
         dragSource.addDragEndListener(e -> {
             dragSource.setDragData(null);
         });
     }
 
-    private void changeWidgetLocationRequest(int column, int row,
+    private void handleDashboardWidgetFrameDrop(int column, int row,
             DashboardWidgetFrame sourceWidget) {
         Area sourceArea = getComponentArea(sourceWidget);
         int sourceWidth = sourceArea.getColumn2() - sourceArea.getColumn1() + 1;
@@ -376,25 +449,9 @@ public class GridDashboard extends GridLayout implements WidgetStatusListener {
             throw new IllegalArgumentException(message);
         }
 
-        String typeID = widget.getWidgetTypeIdentifier();
-
-        Component widgetComponent = null;
-        if (registry.isPresent()) {
-            widgetComponent = registry.get().createWidgetComponent(typeID);
-        }
-        if (widgetComponent == null) {
-            widgetComponent = createUnknownWidget(typeID);
-        }
-
+        Component widgetComponent = createWidgetComponent(widget);
         DashboardWidgetFrame widgetControls = wrap(widget, widgetComponent);
         componentToWidget.put(widget, widgetControls);
-
-        List<DashboardWidgetFrame> list = typeToWidget.get(typeID);
-        if (list == null) {
-            list = new ArrayList<>();
-            typeToWidget.put(typeID, list);
-        }
-        list.add(widgetControls);
 
         Component placeholder = getComponent(column, row);
         if (placeholder instanceof Placeholder) {
@@ -403,6 +460,21 @@ public class GridDashboard extends GridLayout implements WidgetStatusListener {
 
         addComponent(widgetControls, column, row,
                 column + widget.getWidth() - 1, row + widget.getHeight() - 1);
+    }
+
+    private Component createWidgetComponent(Widget widget) {
+        Component widgetComponent = null;
+        String typeID = widget.getWidgetTypeIdentifier();
+        
+        if (registry.isPresent()) {
+            widgetComponent = registry.get().createWidgetComponent(typeID);
+        }
+        
+        if (widgetComponent == null) {
+            widgetComponent = createUnknownWidget(typeID);
+        }
+        
+        return widgetComponent;
     }
 
     private Component createUnknownWidget(String typeID) {
@@ -427,27 +499,26 @@ public class GridDashboard extends GridLayout implements WidgetStatusListener {
 
     @Override
     public void widgetTypeDisabled(String typeID) {
-        List<DashboardWidgetFrame> list = typeToWidget.get(typeID);
-        if (list != null) {
-            for (DashboardWidgetFrame widget : list) {
-                widget.setContent(createUnknownWidget(typeID));
-            }
+        for (DashboardWidgetFrame widget : getByType(typeID)) {
+            widget.setContent(createUnknownWidget(typeID));
         }
     }
 
     @Override
     public void widgetTypeEnabled(String typeID) {
-        List<DashboardWidgetFrame> list = typeToWidget.get(typeID);
-        if (list != null) {
-            for (DashboardWidgetFrame widget : list) {
-                if (registry.isPresent()) {
-                    widget.setContent(
-                            registry.get().createWidgetComponent(typeID));
-                } else {
-                    widget.setContent(createUnknownWidget(typeID));
-                }
+        for (DashboardWidgetFrame widget : getByType(typeID)) {
+            if (registry.isPresent()) {
+                widget.setContent(registry.get().createWidgetComponent(typeID));
+            } else {
+                widget.setContent(createUnknownWidget(typeID));
             }
         }
+    }
+
+    private List<DashboardWidgetFrame> getByType(String typeID) {
+        return componentToWidget.entrySet().stream().filter(e -> {
+            return e.getKey().getWidgetTypeIdentifier().equals(typeID);
+        }).map(e -> e.getValue()).collect(Collectors.toList());
     }
 
     public GridDashboardModel buildModel() {
@@ -459,18 +530,23 @@ public class GridDashboard extends GridLayout implements WidgetStatusListener {
                 .entrySet()) {
             Widget widget = widgets.getKey();
             DashboardWidgetFrame widgetFrame = widgets.getValue();
-            
+
             Area area = getComponentArea(widgetFrame);
-            
+
             model.addWidget(widget, area.getColumn1(), area.getRow1());
+        }
+        for (Widget floatingWidget : floatingWidgets.keySet()) {
+            model.addFloatingWindowWidget(floatingWidget);
         }
         return model;
     }
 
     public void loadModel(GridDashboardModel model) {
         removeAllComponents();
+        closeFloatingWindowWidgets();
+        
+        floatingWidgets.clear();
         componentToWidget.clear();
-        typeToWidget.clear();
         setRows(model.getDashboardHeight());
         setColumns(model.getDashboardWidth());
 
@@ -483,7 +559,18 @@ public class GridDashboard extends GridLayout implements WidgetStatusListener {
                 addWidget(widget, location.getColumn(), location.getRow());
             }
         }
+        
+        for (Widget widget : model.getFloatingWidgets()) {
+            Component component = createWidgetComponent(widget);
+            showWidgetInFloatingWindow(widget, wrap(widget, component));
+        }
 
         fillWithPlaceholders();
+    }
+
+    private void closeFloatingWindowWidgets() {
+        for (Window floatingWidget : floatingWidgets.values()) {
+            floatingWidget.close();
+        }
     }
 }

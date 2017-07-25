@@ -58,6 +58,8 @@ public class GridDashboardModel {
     }
 
     private List<WidgetData> widgets = new ArrayList<>();
+    private List<Widget> floatingWidgets = new ArrayList<>();
+    
     private int dashboardWidth;
     private int dashboardHeight;
 
@@ -93,5 +95,13 @@ public class GridDashboardModel {
 
     public List<WidgetData> getWidgets() {
         return widgets;
+    }
+    
+    public List<Widget> getFloatingWidgets() {
+        return floatingWidgets;
+    }
+
+    public void addFloatingWindowWidget(Widget widget) {
+        floatingWidgets.add(widget);
     }
 }
