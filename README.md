@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This is a Vaadin 8.1.0.rc2 and OSGi demo. The goal of this application was to experiment with Vaadin 8 and OSGi to create a dashboard which could accept widget contributions through OSGi bundles, would offer drag and drop to organize the widgets on the dashboard canvas and is capable of saving and storing the arrangement of widgets and its own configuration.
+This is a Vaadin 8.1.0 and OSGi demo. The goal of this application was to experiment with Vaadin 8 and OSGi to create a dashboard which could accept widget contributions through OSGi bundles, would offer drag and drop to organize the widgets on the dashboard canvas and is capable of saving and storing the arrangement of widgets and its own configuration.
 
 This demo consists of 6 bundles and is a continuation of Matti Hosio's https://github.com/mhosio/vaadin-osgi-demo.
 
@@ -48,7 +48,7 @@ This solution is far from ideal, however it adds some flexibility. The `osgidash
 
 The Vaadin OpenLayers wrappers found in https://github.com/VOL3/v-ol3 contain a demo application and some additional dependencies that are not necessary for using the core wrappers. To simplify this and remove additional OSGi dependencies (for example to the Vaadin compatibility bundles) the repository was forked and the demo application was moved to a separate maven module.
 
-The fork can be found at https://github.com/mmerruko/v-ol3 and is versioned as '2.0.1'. Since this is not in the process of being integrated in the main tree (it will probably be in the future) **it is necessary to clone the fork and run `mvn clean install -Pvaadin-prerelease`** at the root of the git repository to have the dependency of `osgidashboard-olmap` available in the local maven repository.
+The fork can be found at https://github.com/mmerruko/v-ol3 and is versioned as '2.0.1'. Since this is not in the process of being integrated in the main tree (it will probably be in the future) **it is necessary to clone the fork and run `mvn clean install`** at the root of the git repository to have the dependency of `osgidashboard-olmap` available in the local maven repository.
 
 ## Installation
 
@@ -58,7 +58,7 @@ Once karaf is running then do the following :
 
 1. run `feature:install http`
 1. run `feature:install http-whiteboard`
-1. Go to the root of the demo example and run `mvn clean package -Pvaadin-prerelease` which produces the necessary bundles and a .kar file under `osgidashboard-karaf/target`
+1. Go to the root of the demo example and run `mvn clean package` which produces the necessary bundles and a .kar file under `osgidashboard-karaf/target`
 1. run `kar:install file://${path-to-kar-file}` where `${path-to-kar-file}` should be replaced with the absolute path to the kar file produced in the previous step
 
 The kar file is a convenient packaging of the Vaadin bundles, their dependencies and the demo bundles and dependencies.
