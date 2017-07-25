@@ -9,7 +9,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>osgidashboard-dashboard</artifactId>
-	<name>osgidashboard-addon</name>
+	<name>Dashboard Implementation</name>
 	<packaging>jar</packaging>
 
 	<dependencies>

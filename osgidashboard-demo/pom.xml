@@ -9,7 +9,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>osgidashboard-demo</artifactId>
-	<name>osgidashboard-ui</name>
+	<name>Dashboard Demo UI</name>
 
 	<dependencies>
 		<!-- Versions for these are configured in the parent POM -->
