@@ -54,33 +54,29 @@ public class MapWidgetContribution implements IWidgetContribution {
     private static final int LON = -10997148;
     private static final int LAT = 4569099;
 
-    private OLMap map;
-    private OLTileLayer baseLayer;
-    private OLVectorLayer vectorLayer;
-
     @Override
     public Component createWidgetComponent() {
         final VerticalLayout layout = new VerticalLayout();
         layout.setSizeFull();
         // create map instance
-        map = new OLMap();
+        OLMap map = new OLMap();
         map.setView(createView());
         map.setSizeFull();
         layout.addComponent(map);
         layout.setExpandRatio(map, 1.0f);
         // add layers to map
-        baseLayer = new OLTileLayer(createTileSource());
+        OLTileLayer baseLayer = new OLTileLayer(createTileSource());
         baseLayer.setExtent(new OLExtent(new OLCoordinate(-13884991, 2870341),
                 new OLCoordinate(-7455066, 6338219)));
 
         map.addLayer(baseLayer);
-        vectorLayer = new OLVectorLayer(createVectorSource());
+        OLVectorLayer vectorLayer = new OLVectorLayer(createVectorSource());
         vectorLayer.setLayerVisible(false);
         map.addLayer(vectorLayer);
         // create footer controls
-        layout.addComponent(createFooterControls());
+        layout.addComponent(createFooterControls(vectorLayer, map));
         // add some map controls
-        createMapControls();
+        createMapControls(map);
         // add initial interaction
         map.addInteraction(new OLSelectInteraction());
         return layout;
@@ -120,13 +116,13 @@ public class MapWidgetContribution implements IWidgetContribution {
         return source;
     }
 
-    private void createMapControls() {
+    private void createMapControls(OLMap map) {
         map.setMousePositionControl(new OLMousePositionControl());
         map.getMousePositionControl().projection = Projections.EPSG4326;
         map.setScaleLineControl(new OLScaleLineControl());
     }
 
-    private ComponentContainer createFooterControls() {
+    private ComponentContainer createFooterControls(OLVectorLayer vectorLayer, OLMap map) {
         HorizontalLayout controls = new HorizontalLayout();
         controls.setSpacing(true);
         controls.setMargin(true);
@@ -156,15 +152,15 @@ public class MapWidgetContribution implements IWidgetContribution {
         interactionMode.setEmptySelectionAllowed(false);
         interactionMode.setTextInputAllowed(false);
         interactionMode.addValueChangeListener(e -> {
-            toggleInteractionMode(e.getValue());
+            toggleInteractionMode(vectorLayer, map, e.getValue());
         });
         interactionMode.setValue(SELECT_MODE);
         controls.addComponent(interactionMode);
         return controls;
     }
 
-    private void toggleInteractionMode(String mode) {
-        clearInteractions();
+    private void toggleInteractionMode(OLVectorLayer vectorLayer, OLMap map, String mode) {
+        clearInteractions(map);
         if (mode.equals(SELECT_MODE)) {
             map.addInteraction(new OLSelectInteraction());
         } else if (mode.equals(EDIT_MODE)) {
@@ -177,7 +173,7 @@ public class MapWidgetContribution implements IWidgetContribution {
         }
     }
 
-    private void clearInteractions() {
+    private void clearInteractions(OLMap map) {
         for (OLInteraction interaction : map.getInteractions()) {
             map.removeInteraction(interaction);
         }
