@@ -9,6 +9,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.vaadin.ui.JavaScript;
 import org.vaadin.mmerruko.griddashboard.IWidgetRegistry;
 import org.vaadin.mmerruko.griddashboard.WidgetStatusListener;
 import org.vaadin.mmerruko.griddashboard.model.GridDashboardModel;
@@ -161,7 +162,15 @@ public class GridDashboard extends GridLayout implements WidgetStatusListener {
             componentToWidget.remove(widget);
             fillWithPlaceholders();
         });
-        
+        // Prevents map panning (canvas mousedown) from triggering grid drag
+        JavaScript.getCurrent().execute(
+                "if(window.wDragStop===undefined) window.wDragStop = " +
+                        "ev => ev.currentTarget.draggable = ev.target.tagName." +
+                        "toLowerCase() !== 'canvas';" +
+                        "Array.prototype.forEach.call(document.querySelectorAll" +
+                        "('.dashboard-widget'), el => el.addEventListener" +
+                        "('mousedown', window.wDragStop));");
+
         configureInternalDashboardDnd(widget, widgetFrame);
         return widgetFrame;
     }
