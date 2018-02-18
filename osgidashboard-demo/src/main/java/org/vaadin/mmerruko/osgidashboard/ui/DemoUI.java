@@ -8,9 +8,11 @@ import javax.servlet.annotation.WebServlet;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
-import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceScope;
+import org.osgi.service.component.annotations.ServiceScope;
 import org.vaadin.mmerruko.griddashboard.IWidgetRegistry;
 import org.vaadin.mmerruko.griddashboard.WidgetStatusListener;
 import org.vaadin.mmerruko.griddashboard.model.GridDashboardModel;
@@ -27,6 +29,7 @@ import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.VaadinServletConfiguration;
 import com.vaadin.annotations.Widgetset;
 import com.vaadin.icons.VaadinIcons;
+import com.vaadin.osgi.servlet.ds.OsgiVaadinServlet;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Resource;
 import com.vaadin.server.VaadinRequest;
@@ -45,15 +48,14 @@ import com.vaadin.ui.themes.ValoTheme;
 @Theme(DemoTheme.THEME_NAME)
 @Widgetset(DashboardWidgetset.NAME)
 @Push
+@Component(scope = ServiceScope.PROTOTYPE, service = UI.class)
 public class DemoUI extends UI {
 
-    private ServiceReference<WidgetToolbar> toolbarServiceRef;
-    private ServiceReference<IWidgetRegistry> registryServiceRef;
-    private IWidgetRegistry registryService;
     private ServiceRegistration<WidgetStatusListener> widgetStatusListener;
     private GridDashboard dashboard;
-    private ServiceReference<DashboardService> dashboardServiceRef;
     private DashboardService dashboardService;
+    private IWidgetRegistry registryService;
+    private WidgetToolbar toolbar;
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {
@@ -82,10 +84,37 @@ public class DemoUI extends UI {
         setContent(sideMenu);
     }
 
+    @Reference
+    void setLogService(IWidgetRegistry registry) {
+        this.registryService = registry;
+    }
+
+    void unsetLogService(IWidgetRegistry registry) {
+        this.registryService = null;
+    }
+
+    @Reference
+    void setDashboardService(DashboardService dashboardService) {
+        this.dashboardService = dashboardService;
+    }
+
+    void unsetDashboardService(DashboardService dashboardService) {
+        this.dashboardService = null;
+    }
+
+    @Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
+    void setWidgetToolbar(WidgetToolbar toolbar) {
+        this.toolbar = toolbar;
+    }
+
+    void unsetWidgetToolbar(WidgetToolbar toolbar) {
+        this.toolbar = null;
+    }
+
     private void registerWidgetStatusListener(GridDashboard dashboard) {
         if (registryService != null) {
-            widgetStatusListener = getBundleContext().registerService(
-                    WidgetStatusListener.class, new WidgetStatusListener() {
+            widgetStatusListener = getBundleContext().registerService(WidgetStatusListener.class,
+                    new WidgetStatusListener() {
 
                         @Override
                         public void widgetTypeEnabled(String typeID) {
@@ -114,23 +143,21 @@ public class DemoUI extends UI {
         toolbarWrapper.setWidth("100%");
         toolbarWrapper.setMargin(new MarginInfo(false, true));
 
-        addDashboardMenuItem(dashboardMenu, "Resize", VaadinIcons.RESIZE_H,
-                e -> {
-                    int rows = dashboard.getRows();
-                    int columns = dashboard.getColumns();
+        addDashboardMenuItem(dashboardMenu, "Resize", VaadinIcons.RESIZE_H, e -> {
+            int rows = dashboard.getRows();
+            int columns = dashboard.getColumns();
 
-                    SizeDialog dialog = new SizeDialog();
-                    dialog.setResizeCallback((width, height) -> {
-                        if (!dashboard.canSetDimensions(width, height)) {
-                            Notification.show("Invalid dashboard dimensions!",
-                                    Notification.Type.ERROR_MESSAGE);
-                            return false;
-                        }
-                        dashboard.setDimensions(width, height);
-                        return true;
-                    });
-                    dialog.show(columns, rows);
-                });
+            SizeDialog dialog = new SizeDialog();
+            dialog.setResizeCallback((width, height) -> {
+                if (!dashboard.canSetDimensions(width, height)) {
+                    Notification.show("Invalid dashboard dimensions!", Notification.Type.ERROR_MESSAGE);
+                    return false;
+                }
+                dashboard.setDimensions(width, height);
+                return true;
+            });
+            dialog.show(columns, rows);
+        });
 
         addDashboardMenuItem(dashboardMenu, "Save", FontAwesome.FLOPPY_O, e -> {
             if (dashboardService != null) {
@@ -144,31 +171,27 @@ public class DemoUI extends UI {
             }
         });
 
-        addDashboardMenuItem(dashboardMenu, "Load", FontAwesome.FOLDER_OPEN_O,
-                e -> {
-                    List<String> dashboards = dashboardService
-                            .getAvailableDashboards();
-                    DashboardSelectionDialog dialog = new DashboardSelectionDialog();
-                    dialog.setDashboards(dashboards);
-                    dialog.setCallback(dashboardName -> {
-                        GridDashboardModel model = dashboardService
-                                .loadDashboard(dashboardName);
-                        dashboard.loadModel(model);
-                        return true;
-                    });
+        addDashboardMenuItem(dashboardMenu, "Load", FontAwesome.FOLDER_OPEN_O, e -> {
+            List<String> dashboards = dashboardService.getAvailableDashboards();
+            DashboardSelectionDialog dialog = new DashboardSelectionDialog();
+            dialog.setDashboards(dashboards);
+            dialog.setCallback(dashboardName -> {
+                GridDashboardModel model = dashboardService.loadDashboard(dashboardName);
+                dashboard.loadModel(model);
+                return true;
+            });
 
-                    addWindow(dialog);
-                });
+            addWindow(dialog);
+        });
 
         toolbarWrapper.addComponent(dashboardMenu);
-        toolbarWrapper.setComponentAlignment(dashboardMenu,
-                Alignment.MIDDLE_RIGHT);
+        toolbarWrapper.setComponentAlignment(dashboardMenu, Alignment.MIDDLE_RIGHT);
 
         return toolbarWrapper;
     }
 
-    private Button addDashboardMenuItem(CssLayout dashboardMenu, String caption,
-            Resource icon, Button.ClickListener action) {
+    private Button addDashboardMenuItem(CssLayout dashboardMenu, String caption, Resource icon,
+            Button.ClickListener action) {
         Button button = new Button(caption);
         button.setIcon(icon);
         button.addStyleName(ValoTheme.BUTTON_SMALL);
@@ -179,58 +202,15 @@ public class DemoUI extends UI {
     }
 
     @Override
-    public void attach() {
-        super.attach();
-        registryServiceRef = getServiceReference(IWidgetRegistry.class);
-        if (registryServiceRef != null) {
-            registryService = getService(registryServiceRef);
-        }
-
-        dashboardServiceRef = getServiceReference(DashboardService.class);
-        if (dashboardServiceRef != null) {
-            dashboardService = getService(dashboardServiceRef);
-        }
-    }
-
-    private <T> ServiceReference<T> getServiceReference(Class<T> service) {
-        return getBundleContext().getServiceReference(service);
-    }
-
-    @Override
     public void detach() {
         super.detach();
-        ungetService(registryServiceRef);
-        ungetService(toolbarServiceRef);
-        ungetService(dashboardServiceRef);
         if (widgetStatusListener != null) {
             widgetStatusListener.unregister();
         }
     }
 
-    private <T> void ungetService(ServiceReference<T> ref) {
-        if (ref == null)
-            return;
-        try {
-            getBundleContext().ungetService(ref);
-        } catch (IllegalStateException e) {
-            e.printStackTrace();
-        }
-    }
-
     private WidgetToolbar getToolbar() {
-        ungetService(toolbarServiceRef);
-        toolbarServiceRef = getServiceReference(WidgetToolbar.class);
-        if (toolbarServiceRef != null) {
-            return getService(toolbarServiceRef);
-        }
-        return null;
-    }
-
-    private <T> T getService(ServiceReference<T> serviceRef) {
-        if (serviceRef == null)
-            return null;
-
-        return getBundleContext().getService(serviceRef);
+        return toolbar;
     }
 
     private void showWidgetToolbarWindow() {
@@ -238,14 +218,13 @@ public class DemoUI extends UI {
         if (toolbar != null) {
             addWindow(toolbar);
         } else {
-            Notification.show("No Toolbar Service Registered!",
-                    Type.ERROR_MESSAGE);
+            Notification.show("No Toolbar Service Registered!", Type.ERROR_MESSAGE);
         }
     }
 
     @WebServlet(urlPatterns = "/*", name = "DemoUIServlet", asyncSupported = true)
     @VaadinServletConfiguration(ui = DemoUI.class, productionMode = false)
     @Component(service = VaadinServlet.class)
-    public static class DemoUIServlet extends VaadinServlet {
+    public static class DemoUIServlet extends OsgiVaadinServlet {
     }
 }
