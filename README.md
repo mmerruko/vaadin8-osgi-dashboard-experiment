@@ -69,11 +69,12 @@ Typically when uninstalling and reinstalling the kar file (`kar:uninstall osgida
 
 To solve that run `bundle:list` and then `restart ${bundleId}` where `${bundleId}` is the id of the bundle to restart, and pass in the bundles that were not properly initialized. For me that is usually the `vaadin-push` and `vaadin-server`, and more rarely the `osgidashboard-osgi-widgetset`.
 
-## Future ideas for the Demo
+## TODOs
 
-At the time of writing this the ideas for further experimentation are :
+1. Improve building time, it now unnecessarily builds several widgetsets while only one is needed
+1. Additional features:
+  1. Extend the widget model to include widget properties that can be used to persist widget specific state
 
-1. Extend the widget model to include widget properties that can be used to persist widget specific state
 
 ## Feedback
 
