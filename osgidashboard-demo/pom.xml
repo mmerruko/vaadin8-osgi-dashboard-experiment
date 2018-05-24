@@ -60,7 +60,7 @@
 		</dependency>
 		<dependency>
 			<groupId>com.vaadin</groupId>
-			<artifactId>vaadin-servlet-publisher</artifactId>
+			<artifactId>osgi-vaadin-servlet-publisher</artifactId>
 			<version>0.9.0</version>
 		</dependency>
 		<dependency>
